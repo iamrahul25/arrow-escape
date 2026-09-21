@@ -1,0 +1,1798 @@
+Yes. You can build this very well in **React Native + Expo**, and for only 3 levels I would keep the architecture simple but design it so adding 100+ levels later is easy.
+
+From your screenshots, the core game is essentially:
+
+> **Tap an arrow → if its entire path is unobstructed in the arrow's direction, it moves/disappears → continue until all arrows are cleared.**
+
+The important part is that the arrows aren't just independent objects. Their **paths can overlap**, so the game needs a collision/path-blocking engine.
+
+---
+
+# 1. First, let's define the game
+
+Your initial MVP can have:
+
+### Main screen
+
+```text
+┌─────────────────────────────┐
+│ ←        Arrow Escape    ⚙ │
+│                             │
+│         Level 1             │
+│                             │
+│      ❤️ ❤️ ❤️               │
+│                             │
+│       18 arrows             │
+│                             │
+│   ┌─────────────────────┐   │
+│   │ → →                 │   │
+│   │       ↑             │   │
+│   │   ← ←      →        │   │
+│   │                     │   │
+│   │       ↓     ↑       │   │
+│   │   →                 │   │
+│   └─────────────────────┘   │
+│                             │
+│       💡 2       #          │
+└─────────────────────────────┘
+```
+
+For your first version:
+
+- 3 levels
+- 3 hearts/lives
+- Arrow counter
+- Level number
+- Hint button
+- Restart button
+- Pause/settings
+- Win screen
+- Game-over screen
+
+---
+
+# 2. Recommended tech stack
+
+Since you're already working with React Native/Expo, I'd use:
+
+### Mobile
+
+```text
+React Native
+      +
+Expo
+      +
+TypeScript
+```
+
+### Game rendering
+
+I recommend **React Native Skia** rather than trying to build the entire board with normal `View`s.
+
+Why?
+
+Your game has:
+
+- lines
+- arrows
+- paths
+- animations
+- movement
+- scaling
+- touch detection
+- potentially hundreds of arrows later
+
+Skia is much better suited for this.
+
+Possible stack:
+
+```text
+Expo
+React Native
+TypeScript
+@shopify/react-native-skia
+react-native-reanimated
+expo-haptics
+AsyncStorage
+```
+
+You don't need a backend for the first 3 levels.
+
+---
+
+# 3. Overall architecture
+
+I'd structure the project like this:
+
+```text
+arrow-escape/
+│
+├── app/
+│   ├── index.tsx
+│   ├── game.tsx
+│   ├── level-select.tsx
+│   ├── settings.tsx
+│   └── result.tsx
+│
+├── components/
+│   ├── GameBoard.tsx
+│   ├── Arrow.tsx
+│   ├── ArrowPath.tsx
+│   ├── GameHeader.tsx
+│   ├── Lives.tsx
+│   ├── HintButton.tsx
+│   ├── LevelBadge.tsx
+│   └── WinModal.tsx
+│
+├── game/
+│   ├── engine/
+│   │   ├── GameEngine.ts
+│   │   ├── CollisionEngine.ts
+│   │   ├── MovementEngine.ts
+│   │   └── HintEngine.ts
+│   │
+│   ├── levels/
+│   │   ├── level1.ts
+│   │   ├── level2.ts
+│   │   ├── level3.ts
+│   │   └── index.ts
+│   │
+│   ├── types/
+│   │   └── game.ts
+│   │
+│   └── utils/
+│       ├── geometry.ts
+│       ├── directions.ts
+│       └── levelValidator.ts
+│
+├── assets/
+│   ├── sounds/
+│   ├── icons/
+│   └── images/
+│
+├── store/
+│   └── gameStore.ts
+│
+└── package.json
+```
+
+---
+
+# 4. Most important decision: don't hard-code the levels
+
+This is extremely important.
+
+Don't create Level 1 like:
+
+```tsx
+<View style={{left: 100, top: 200}}>
+   ...
+</View>
+```
+
+Instead, make every level **data-driven**.
+
+For example:
+
+```ts
+export type Direction = "up" | "down" | "left" | "right";
+
+export interface Arrow {
+  id: string;
+
+  x: number;
+  y: number;
+
+  direction: Direction;
+
+  length: number;
+
+  width: number;
+
+  active: boolean;
+}
+```
+
+Then Level 1 becomes:
+
+```ts
+export const level1 = {
+  id: 1,
+
+  gridSize: 8,
+
+  arrows: [
+    {
+      id: "a1",
+      x: 1,
+      y: 1,
+      direction: "right",
+      length: 3,
+    },
+
+    {
+      id: "a2",
+      x: 4,
+      y: 2,
+      direction: "down",
+      length: 2,
+    },
+
+    {
+      id: "a3",
+      x: 3,
+      y: 4,
+      direction: "left",
+      length: 3,
+    },
+  ],
+};
+```
+
+This means later you can add:
+
+```text
+Level 4
+Level 5
+Level 6
+...
+Level 100
+```
+
+without changing the game engine.
+
+---
+
+# 5. Grid-based game board
+
+I strongly recommend making the board **grid based**.
+
+For example:
+
+```text
+8 × 8
+
+    0 1 2 3 4 5 6 7
+  ┌─────────────────┐
+0 │                 │
+1 │     → → →       │
+2 │         ↑       │
+3 │ ← ←             │
+4 │             →   │
+5 │     ↓           │
+6 │                 │
+7 │                 │
+  └─────────────────┘
+```
+
+Instead of thinking in pixels:
+
+```text
+x = 143px
+y = 328px
+```
+
+the game thinks:
+
+```text
+x = 3
+y = 4
+```
+
+Then React Native converts that into pixels.
+
+For example:
+
+```ts
+const CELL_SIZE = boardWidth / gridSize;
+
+const pixelX = arrow.x * CELL_SIZE;
+const pixelY = arrow.y * CELL_SIZE;
+```
+
+This makes level creation **much easier**.
+
+---
+
+# 6. Arrow representation
+
+An arrow should have:
+
+```ts
+interface Arrow {
+  id: string;
+
+  x: number;
+  y: number;
+
+  direction: Direction;
+
+  length: number;
+
+  active: boolean;
+
+  locked?: boolean;
+}
+```
+
+Example:
+
+```ts
+{
+  id: "arrow-01",
+  x: 2,
+  y: 3,
+  direction: "right",
+  length: 4,
+  active: true
+}
+```
+
+Visually:
+
+```text
+→────────
+```
+
+The arrow has:
+
+- starting point
+- direction
+- path length
+- arrow head
+- body
+
+---
+
+# 7. How the actual puzzle works
+
+This is the most important part.
+
+Suppose you have:
+
+```text
+             →
+        ┌─────────────
+        │
+        │    ↑
+        │    │
+        │    │
+```
+
+The right arrow wants to escape:
+
+```text
+→ → → → → → → OUT
+```
+
+But if another arrow/path blocks it:
+
+```text
+→ → → ↑
+      ↑
+      ↑
+```
+
+then the right arrow cannot move.
+
+So when the player taps an arrow:
+
+### Step 1
+
+Determine its direction.
+
+Example:
+
+```ts
+direction = "right"
+```
+
+### Step 2
+
+Calculate all cells that the arrow will travel through.
+
+```text
+[3,4]
+[4,4]
+[5,4]
+[6,4]
+[7,4]
+```
+
+### Step 3
+
+Check whether another active arrow occupies/intersects those cells.
+
+### Step 4
+
+If blocked:
+
+```text
+❌ Arrow cannot move
+```
+
+If free:
+
+```text
+✅ Arrow escapes
+```
+
+---
+
+# 8. Collision engine
+
+Create:
+
+```text
+CollisionEngine.ts
+```
+
+Something like:
+
+```ts
+function canArrowMove(
+  arrow: Arrow,
+  arrows: Arrow[]
+): boolean {
+    
+    const path = calculateArrowPath(arrow);
+
+    for (const other of arrows) {
+
+        if (other.id === arrow.id)
+            continue;
+
+        if (!other.active)
+            continue;
+
+        if (pathIntersectsArrow(path, other))
+            return false;
+    }
+
+    return true;
+}
+```
+
+This becomes the heart of the game.
+
+---
+
+# 9. Path calculation
+
+For example:
+
+### Right
+
+```text
+→ → → → → → OUT
+```
+
+Calculate:
+
+```ts
+[
+  { x: 2, y: 4 },
+  { x: 3, y: 4 },
+  { x: 4, y: 4 },
+  { x: 5, y: 4 },
+  { x: 6, y: 4 },
+  { x: 7, y: 4 }
+]
+```
+
+### Left
+
+```ts
+[
+  { x: 5, y: 3 },
+  { x: 4, y: 3 },
+  { x: 3, y: 3 },
+  { x: 2, y: 3 },
+  { x: 1, y: 3 }
+]
+```
+
+### Up
+
+```ts
+[
+  { x: 4, y: 6 },
+  { x: 4, y: 5 },
+  { x: 4, y: 4 },
+  { x: 4, y: 3 },
+  { x: 4, y: 2 }
+]
+```
+
+### Down
+
+opposite.
+
+---
+
+# 10. Arrow movement animation
+
+When an arrow is free:
+
+```text
+Tap
+ ↓
+Check collision
+ ↓
+Can escape?
+ ↓
+YES
+ ↓
+Animate arrow
+ ↓
+Arrow leaves board
+ ↓
+Remove arrow
+ ↓
+Check level completion
+```
+
+Animation:
+
+```text
+Initial
+
+→────────────
+
+        ↓
+
+→────────────→
+
+        ↓
+
+→──────────────→
+
+        ↓
+
+             →→→→
+```
+
+Use:
+
+```text
+react-native-reanimated
+```
+
+or Skia animations.
+
+I'd use Reanimated for simple UI transitions and Skia for board rendering.
+
+---
+
+# 11. Touch detection
+
+The player taps somewhere on the arrow.
+
+You need to determine:
+
+```text
+Which arrow was tapped?
+```
+
+Because arrows can overlap visually.
+
+With Skia, you can handle touch coordinates and convert them into grid coordinates.
+
+For example:
+
+```ts
+const gridX = Math.floor(touchX / cellSize);
+const gridY = Math.floor(touchY / cellSize);
+```
+
+Then:
+
+```ts
+const arrow = findArrowAt(gridX, gridY);
+```
+
+---
+
+# 12. What happens when user taps a blocked arrow?
+
+You need to decide this.
+
+My suggested behavior:
+
+```text
+Tap blocked arrow
+
+      ↓
+
+Small shake animation
+
+      ↓
+
+Short haptic vibration
+
+      ↓
+
+Maybe subtle red flash
+
+      ↓
+
+No life lost
+```
+
+I would **not remove a life** for simply selecting a blocked arrow.
+
+The screenshots show hearts, but you need to decide exactly what they're used for.
+
+Possible meaning:
+
+### Option A
+
+Hearts = mistakes.
+
+```text
+Tap blocked arrow
+→ lose ❤️
+```
+
+### Option B
+
+Hearts = hints/continues.
+
+### Option C
+
+Hearts are simply game lives.
+
+We should decide this before implementation.
+
+---
+
+# 13. Level completion
+
+After every successful arrow removal:
+
+```ts
+if (remainingArrows === 0) {
+    completeLevel();
+}
+```
+
+Then show:
+
+```text
+        🎉
+
+     LEVEL 1
+     COMPLETE!
+
+     ⭐ ⭐ ⭐
+
+   Time: 38 sec
+
+   ┌───────────────┐
+   │   Next Level  │
+   └───────────────┘
+
+      Replay
+```
+
+For MVP, you can keep scoring very simple.
+
+---
+
+# 14. Three levels
+
+I'd deliberately make the difficulty increase.
+
+## Level 1 — Tutorial
+
+Purpose:
+
+> Teach the mechanic.
+
+Around:
+
+```text
+8–12 arrows
+```
+
+Example:
+
+```text
+→ → →
+
+      ↑
+
+← ←
+
+          ↓
+```
+
+Very few intersections.
+
+The player should understand:
+
+> "I need to clear arrows in the correct order."
+
+---
+
+# 15. Level 2 — Intermediate
+
+Around:
+
+```text
+15–20 arrows
+```
+
+Introduce:
+
+- crossing paths
+- multiple possible orders
+- tighter spaces
+- arrows pointing in all directions
+
+Example:
+
+```text
+→ → →       ↑
+            ↑
+← ←    → →  ↑
+       ↓
+       ↓       ← ←
+```
+
+Now the player has to think about the order.
+
+---
+
+# 16. Level 3 — Real puzzle
+
+Around:
+
+```text
+25–35 arrows
+```
+
+Use a structure closer to your screenshot.
+
+For example:
+
+```text
+┌─────────────────────┐
+
+ ↓      → → →         ↑
+ ↓                  ↑
+ ↓    ← ← ←           ↑
+ ↓                     ↑
+ → →       ↑           │
+           ↑           │
+      ← ←  ↑           │
+                     → │
+└─────────────────────┘
+```
+
+This should require several moves to discover the correct sequence.
+
+---
+
+# 17. Don't manually calculate the solution during gameplay
+
+Instead, create a **level validator/solver**.
+
+This is extremely useful.
+
+You can represent a level:
+
+```text
+A
+B
+C
+D
+E
+F
+```
+
+and determine:
+
+```text
+A → B → D → F → C → E
+```
+
+is a valid solution.
+
+Your development tooling can then tell you:
+
+```text
+Level 1
+Solution:
+A → C → B → D → E
+```
+
+This ensures you don't accidentally create an impossible level.
+
+---
+
+# 18. Level solver
+
+Create:
+
+```text
+levelValidator.ts
+```
+
+Pseudo algorithm:
+
+```text
+findSolution(level):
+
+    state = initial level
+
+    for every possible arrow:
+
+        if arrow can escape:
+
+            remove arrow
+
+            recursively solve remaining board
+
+            if solved:
+                return solution
+
+    return no solution
+```
+
+Essentially a DFS/backtracking solver.
+
+For only 3 levels, this is completely manageable.
+
+---
+
+# 19. Very important: detect impossible levels
+
+You don't want:
+
+```text
+Level 3
+❌ No possible solution
+```
+
+So during development:
+
+```ts
+validateLevel(level3)
+```
+
+should return:
+
+```text
+✓ Valid
+✓ Solvable
+✓ Has unique solution
+```
+
+You can even check whether there are multiple solutions.
+
+---
+
+# 20. Game state
+
+I'd maintain something like:
+
+```ts
+interface GameState {
+  level: number;
+
+  arrows: Arrow[];
+
+  lives: number;
+
+  hints: number;
+
+  moves: number;
+
+  startTime: number;
+
+  status:
+    | "playing"
+    | "paused"
+    | "won"
+    | "lost";
+}
+```
+
+---
+
+# 21. Screens
+
+For the first version, I'd build only these:
+
+### 1. Home
+
+```text
+        ARROW
+        ESCAPE
+
+       ▶ PLAY
+
+      Levels
+
+      ⚙ Settings
+```
+
+---
+
+### 2. Level selection
+
+```text
+       Select Level
+
+       ┌─────┐
+       │  1  │
+       └─────┘
+
+       ┌─────┐
+       │  2  │
+       └─────┘
+
+       🔒 3
+```
+
+But since you want 3 levels initially:
+
+```text
+Level 1 ✓
+Level 2 🔒
+Level 3 🔒
+```
+
+Unlock sequentially.
+
+---
+
+### 3. Game screen
+
+This is the most important screen.
+
+```text
+←     Level 2      ⚙
+
+        ❤️ ❤️ ❤️
+
+        21 arrows
+
+┌──────────────────────┐
+│                      │
+│   →──────            │
+│            ↑         │
+│    ←────             │
+│                      │
+│          ↓           │
+│                      │
+└──────────────────────┘
+
+       💡 2
+```
+
+---
+
+### 4. Win screen
+
+```text
+          🎉
+
+      Level Complete
+
+         ⭐⭐⭐
+
+      17 Moves
+      31 Seconds
+
+    [ Next Level ]
+
+       [Replay]
+```
+
+---
+
+### 5. Settings
+
+Keep MVP simple:
+
+```text
+Settings
+
+🔊 Sound       ON
+📳 Haptics     ON
+🌙 Theme       System
+
+          Reset Progress
+```
+
+---
+
+# 22. UI design
+
+From your screenshot, I would use:
+
+### Background
+
+```text
+#FFFFFF
+```
+
+### Primary navy
+
+```text
+#17233F
+```
+
+### Blue
+
+```text
+#159BEF
+```
+
+### Heart
+
+```text
+#FF1744
+```
+
+### Soft panel
+
+```text
+#F4F7FA
+```
+
+The game should have lots of whitespace.
+
+Avoid making the UI too busy.
+
+---
+
+# 23. Arrow design
+
+The arrows should be visually very simple.
+
+For example:
+
+```text
+──────────────▶
+```
+
+with:
+
+- rounded line caps
+- rounded joins
+- consistent stroke width
+- large arrowhead
+- dark navy color
+
+When selected:
+
+```text
+──────────────▶
+```
+
+could become blue temporarily.
+
+When blocked:
+
+```text
+──────────────▶
+```
+
+shake slightly.
+
+When escaping:
+
+```text
+──────────────▶ → → →
+```
+
+fade out.
+
+---
+
+# 24. Don't use image assets for arrows
+
+This is important.
+
+Don't create:
+
+```text
+arrow-right.png
+arrow-left.png
+arrow-up.png
+arrow-down.png
+```
+
+Instead draw them programmatically.
+
+That gives you:
+
+- any size
+- any color
+- smooth animation
+- Retina quality
+- easier scaling
+- easier hit detection
+
+Skia is perfect for this.
+
+---
+
+# 25. Game engine separation
+
+Your React component should **not** contain the game rules.
+
+Bad:
+
+```tsx
+onPress={() => {
+   // 100 lines of collision logic
+}}
+```
+
+Instead:
+
+```tsx
+const result = gameEngine.tapArrow(arrowId);
+
+if (result.success) {
+   animateArrow(arrowId);
+}
+```
+
+The engine handles:
+
+```text
+tapArrow()
+canMove()
+removeArrow()
+isLevelComplete()
+getAvailableMoves()
+getHint()
+```
+
+This will make the project much easier to maintain.
+
+---
+
+# 26. Suggested classes/functions
+
+### GameEngine
+
+```ts
+class GameEngine {
+
+  loadLevel(level: Level)
+
+  tapArrow(id: string)
+
+  canMove(id: string)
+
+  removeArrow(id: string)
+
+  isComplete()
+
+  getAvailableMoves()
+
+  getHint()
+
+  reset()
+}
+```
+
+### CollisionEngine
+
+```ts
+calculatePath()
+
+isPathBlocked()
+
+getBlockingArrow()
+
+isArrowOverlapping()
+```
+
+### Solver
+
+```ts
+solveLevel()
+
+hasSolution()
+
+countSolutions()
+```
+
+---
+
+# 27. Hint system
+
+Your screenshot has a lightbulb.
+
+For MVP:
+
+```text
+💡 Hint
+```
+
+When pressed:
+
+```text
+Find an arrow that can currently move.
+```
+
+Highlight it:
+
+```text
+        ✨
+        ↓
+
+──────────────→
+```
+
+You can also say:
+
+```text
+"This arrow can escape."
+```
+
+Don't automatically move it.
+
+---
+
+# 28. Move counter
+
+You can show:
+
+```text
+↗ 42
+```
+
+like the screenshot.
+
+But I'd rename the concept internally to:
+
+```text
+moves
+```
+
+Every successful arrow removal:
+
+```ts
+moves++;
+```
+
+You can later use:
+
+```text
+Best:
+17 moves
+```
+
+---
+
+# 29. Sound effects
+
+Add only a few sounds initially:
+
+```text
+tap.mp3
+escape.mp3
+blocked.mp3
+level-complete.mp3
+```
+
+For example:
+
+### Successful
+
+```text
+tap
+whoosh
+```
+
+### Blocked
+
+```text
+soft click
+```
+
+### Complete
+
+```text
+success sound
+```
+
+Use `expo-av`/current Expo audio APIs depending on the Expo SDK version you're using.
+
+---
+
+# 30. Haptic feedback
+
+Use:
+
+```text
+expo-haptics
+```
+
+Successful arrow:
+
+```text
+Light impact
+```
+
+Blocked:
+
+```text
+Selection feedback
+```
+
+Level completion:
+
+```text
+Success notification
+```
+
+---
+
+# 31. Data persistence
+
+You don't need a backend.
+
+Use:
+
+```text
+AsyncStorage
+```
+
+Store:
+
+```json
+{
+  "highestLevel": 2,
+  "completedLevels": [1, 2],
+  "bestScores": {
+    "1": 12,
+    "2": 24
+  },
+  "settings": {
+    "sound": true,
+    "haptics": true
+  }
+}
+```
+
+---
+
+# 32. Responsive board
+
+This is especially important because Android devices have different screen sizes.
+
+Your board should be based on:
+
+```ts
+const boardSize = Math.min(
+  screenWidth - 32,
+  screenHeight * 0.55
+);
+```
+
+Then:
+
+```ts
+cellSize = boardSize / gridSize;
+```
+
+So the same level works on:
+
+```text
+iPhone
+Samsung
+Pixel
+iQOO
+tablets
+```
+
+without changing level coordinates.
+
+---
+
+# 33. Orientation
+
+For this game:
+
+```text
+Portrait only
+```
+
+is sufficient initially.
+
+It also matches the screenshot.
+
+---
+
+# 34. Gesture architecture
+
+Don't use a complicated gesture system initially.
+
+You only need:
+
+```text
+tap
+```
+
+Later you could add:
+
+```text
+swipe
+```
+
+but I wouldn't.
+
+The original gameplay is essentially:
+
+> Tap an arrow.
+
+---
+
+# 35. Game lifecycle
+
+The complete flow should be:
+
+```text
+                 ┌──────────────┐
+                 │    Home      │
+                 └──────┬───────┘
+                        │
+                       Play
+                        │
+                        ▼
+                ┌───────────────┐
+                │ Level Select  │
+                └───────┬───────┘
+                        │
+                        ▼
+                ┌───────────────┐
+                │ Load Level    │
+                └───────┬───────┘
+                        │
+                        ▼
+                ┌───────────────┐
+                │    Playing    │
+                └───────┬───────┘
+                        │
+                  Tap Arrow
+                        │
+                        ▼
+                ┌───────────────┐
+                │ Can Escape?   │
+                └───┬───────┬───┘
+                    │       │
+                   YES      NO
+                    │       │
+                    ▼       ▼
+                 Escape   Shake/Haptic
+                    │
+                    ▼
+              More arrows?
+               │         │
+              YES        NO
+               │          │
+               ▼          ▼
+            Playing      WIN
+                           │
+                           ▼
+                       Next Level
+```
+
+---
+
+# 36. Development phases
+
+I would build this in **8 phases**.
+
+## Phase 1 — Project setup
+
+```text
+Expo
+TypeScript
+Skia
+Reanimated
+Haptics
+AsyncStorage
+```
+
+Create navigation.
+
+---
+
+## Phase 2 — Static board
+
+First get this working:
+
+```text
+Game screen
+   ↓
+Board
+   ↓
+10 arrows
+```
+
+No animation.
+
+No collision.
+
+Just rendering.
+
+---
+
+## Phase 3 — Touch
+
+Implement:
+
+```text
+Tap arrow
+ ↓
+identify arrow
+ ↓
+console.log(id)
+```
+
+Make sure touch detection works perfectly.
+
+---
+
+## Phase 4 — Game engine
+
+Implement:
+
+```text
+canMove()
+calculatePath()
+collision detection
+removeArrow()
+```
+
+This is the core milestone.
+
+---
+
+## Phase 5 — Animation
+
+Add:
+
+```text
+arrow escape
+arrow fade
+arrow scale
+blocked shake
+```
+
+---
+
+## Phase 6 — Game UX
+
+Add:
+
+```text
+Lives
+Moves
+Hints
+Pause
+Win
+Restart
+```
+
+---
+
+## Phase 7 — Levels
+
+Create:
+
+```text
+Level 1
+Level 2
+Level 3
+```
+
+Then run the solver against them.
+
+---
+
+## Phase 8 — Polish
+
+Add:
+
+```text
+sounds
+haptics
+animations
+best scores
+settings
+progress
+app icon
+splash
+APK
+```
+
+---
+
+# 37. MVP folder structure I'd actually recommend
+
+Since you're building only 3 levels right now, don't over-engineer it.
+
+I'd start with:
+
+```text
+src/
+│
+├── components/
+│   ├── ArrowBoard.tsx
+│   ├── Arrow.tsx
+│   ├── Header.tsx
+│   └── GameResult.tsx
+│
+├── game/
+│   ├── engine.ts
+│   ├── collision.ts
+│   ├── solver.ts
+│   ├── geometry.ts
+│   └── types.ts
+│
+├── levels/
+│   ├── level1.ts
+│   ├── level2.ts
+│   └── level3.ts
+│
+├── screens/
+│   ├── HomeScreen.tsx
+│   ├── LevelScreen.tsx
+│   └── GameScreen.tsx
+│
+└── utils/
+    ├── storage.ts
+    └── sound.ts
+```
+
+That's enough.
+
+---
+
+# 38. One thing I need to clarify about your exact game
+
+The screenshots make the game look like **Arrows – Puzzle Escape**, but I don't want to assume the exact rules.
+
+Before we start implementing, please answer these **8 questions**:
+
+### 1. Arrow movement
+
+When the player taps an arrow, should it:
+
+**A.** Move continuously along its line and leave the board  
+**B.** Move only one grid cell  
+**C.** Move along its entire path and disappear
+
+I assume **C**.
+
+---
+
+### 2. Blocking
+
+Suppose:
+
+```text
+→ → → → → → OUT
+      ↑
+      ↑
+```
+
+and the vertical arrow intersects the horizontal arrow's path.
+
+Should the horizontal arrow be blocked until the vertical arrow is removed?
+
+**Yes / No**
+
+---
+
+### 3. Hearts ❤️
+
+What should hearts represent?
+
+**A.** Number of mistakes allowed  
+**B.** Number of hints  
+**C.** Number of retries  
+**D.** Just UI decoration for now
+
+---
+
+### 4. Level design
+
+Do you want me to **design all 3 levels for you**, including their exact arrow positions and solutions?
+
+**Yes / No**
+
+If yes, I'll create:
+
+```text
+Level 1 → Easy
+Level 2 → Medium
+Level 3 → Hard
+```
+
+with guaranteed solutions.
+
+---
+
+### 5. Visual style
+
+Do you want your game to look **very close to the screenshots**:
+
+```text
+white background
+navy arrows
+blue interactions
+large clean typography
+minimal UI
+```
+
+or do you want a **different/custom visual identity**?
+
+---
+
+### 6. Grid
+
+Are you okay with me using an invisible:
+
+```text
+8 × 8
+```
+
+or
+
+```text
+10 × 10
+```
+
+grid underneath the puzzle?
+
+I strongly recommend this because it makes the puzzle engine and level creation much easier.
+
+---
+
+### 7. Technology
+
+Since you've already worked with Expo, should I target:
+
+```text
+Expo + React Native + TypeScript
++ React Native Skia
++ Reanimated
+```
+
+for the implementation?
+
+---
+
+### 8. First version
+
+Do you want **only the game screen first**, or should we build the complete MVP:
+
+```text
+Home
+ ↓
+Level Selection
+ ↓
+Level 1
+ ↓
+Level 2
+ ↓
+Level 3
+ ↓
+Win
+ ↓
+Progress saved
+```
+
+I recommend the second approach because we can establish the architecture correctly from the beginning.
