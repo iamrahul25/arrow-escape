@@ -28,6 +28,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "validate-levels": "tsx scripts/validate-levels.ts",
+    "gen-levels": "tsx scripts/gen-full-grid-levels.ts",
     "smoke-test": "tsx scripts/smoke-test.ts"
   },
   "private": true

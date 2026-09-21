@@ -1,0 +1,9 @@
+Features to add: 
+---------------
+- Add auto play feature -> for testing any level if it solvable or not (playable button)
+- Add a straight line -> Status bar line - green color (Good UI) -> Which indicate the level completion status
+- Remove all the emojis in the game and add gaming icons or create own icon 
+- Add circular ripple effect
+
+Added features: 
+---------------

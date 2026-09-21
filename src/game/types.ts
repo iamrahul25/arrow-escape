@@ -29,6 +29,20 @@ export interface Level {
   hintQuota: number;
 }
 
+/** JSON authoring form: corner waypoints expand to full path on load. */
+export interface ArrowJson {
+  id: string;
+  waypoints: Cell[];
+}
+
+export interface LevelJson {
+  id: number;
+  name: string;
+  gridSize: number;
+  hintQuota: number;
+  arrows: ArrowJson[];
+}
+
 export interface TapResult {
   success: boolean;
   blocked: boolean;

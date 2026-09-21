@@ -6,6 +6,9 @@ export const config = {
   /** Starting hearts per level. */
   lives: 3,
 
+  /** When true, every level is playable (for testing). */
+  unlockAllLevels: true,
+
   arrow: {
     /** Stroke width as a fraction of cell size. */
     strokeWidthFactor: 0.15,

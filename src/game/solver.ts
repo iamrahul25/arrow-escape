@@ -98,6 +98,13 @@ export function validateLevel(level: Level): {
     }
   }
 
+  const totalCells = level.gridSize * level.gridSize;
+  if (errors.length === 0 && occupied.size !== totalCells) {
+    errors.push(
+      `Grid not fully covered: ${occupied.size}/${totalCells} cells occupied`,
+    );
+  }
+
   const solution = errors.length === 0 ? solveLevel(level) : null;
 
   return {
