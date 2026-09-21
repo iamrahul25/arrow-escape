@@ -1,0 +1,151 @@
+{
+  "version": 1,
+  "level": 1,
+  "name": "Warm Up",
+  "board": {
+    "width": 8,
+    "height": 8
+  },
+  "difficulty": "tutorial",
+  "hintQuota": 3,
+  "generation": {
+    "seed": 165406,
+    "generatorVersion": "1.0.0"
+  },
+  "stats": {
+    "arrowCount": 7,
+    "bendCount": 1,
+    "solutionCount": 20,
+    "difficultyScore": 17,
+    "initialAvailable": 6,
+    "dependencyDepth": 7,
+    "deadEndCount": 0
+  },
+  "solution": [
+    "A01",
+    "A02",
+    "A03",
+    "A04",
+    "A05",
+    "A06",
+    "A07"
+  ],
+  "arrows": [
+    {
+      "id": "A01",
+      "start": {
+        "x": 3,
+        "y": 1
+      },
+      "segments": [
+        {
+          "direction": "up",
+          "length": 1
+        }
+      ],
+      "head": {
+        "direction": "up"
+      }
+    },
+    {
+      "id": "A02",
+      "start": {
+        "x": 6,
+        "y": 7
+      },
+      "segments": [
+        {
+          "direction": "left",
+          "length": 5
+        }
+      ],
+      "head": {
+        "direction": "left"
+      }
+    },
+    {
+      "id": "A03",
+      "start": {
+        "x": 2,
+        "y": 1
+      },
+      "segments": [
+        {
+          "direction": "left",
+          "length": 2
+        }
+      ],
+      "head": {
+        "direction": "left"
+      }
+    },
+    {
+      "id": "A04",
+      "start": {
+        "x": 6,
+        "y": 2
+      },
+      "segments": [
+        {
+          "direction": "left",
+          "length": 5
+        }
+      ],
+      "head": {
+        "direction": "left"
+      }
+    },
+    {
+      "id": "A05",
+      "start": {
+        "x": 4,
+        "y": 5
+      },
+      "segments": [
+        {
+          "direction": "right",
+          "length": 2
+        },
+        {
+          "direction": "down",
+          "length": 1
+        }
+      ],
+      "head": {
+        "direction": "down"
+      }
+    },
+    {
+      "id": "A06",
+      "start": {
+        "x": 3,
+        "y": 3
+      },
+      "segments": [
+        {
+          "direction": "right",
+          "length": 3
+        }
+      ],
+      "head": {
+        "direction": "right"
+      }
+    },
+    {
+      "id": "A07",
+      "start": {
+        "x": 4,
+        "y": 1
+      },
+      "segments": [
+        {
+          "direction": "right",
+          "length": 2
+        }
+      ],
+      "head": {
+        "direction": "right"
+      }
+    }
+  ]
+}

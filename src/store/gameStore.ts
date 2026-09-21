@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { GameEngine } from '../game/engine';
 import type { GameSnapshot, ProgressData, TapResult } from '../game/types';
 import { getLevel, getNextLevelId, LEVELS } from '../levels';
+import { config } from '../config';
 import {
   DEFAULT_PROGRESS,
   loadProgress,
@@ -209,6 +210,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   isLevelUnlocked: (levelId) => {
+    if (config.unlockAllLevels) return true;
     const { progress } = get();
     return levelId <= progress.highestLevel;
   },

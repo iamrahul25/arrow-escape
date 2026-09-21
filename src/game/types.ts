@@ -1,10 +1,24 @@
 export type Direction = 'up' | 'down' | 'left' | 'right';
 
+export type DifficultyBand =
+  | 'tutorial'
+  | 'easy'
+  | 'easyPlus'
+  | 'medium'
+  | 'hard'
+  | 'veryHard'
+  | 'expert';
+
 export type GameStatus = 'playing' | 'paused' | 'won' | 'lost';
 
 export interface Cell {
   x: number;
   y: number;
+}
+
+export interface PathSegment {
+  direction: Direction;
+  length: number;
 }
 
 /**
@@ -27,6 +41,41 @@ export interface Level {
   gridSize: number;
   arrows: ArrowDef[];
   hintQuota: number;
+}
+
+/** Compact on-disk arrow (segments expand to path at load time). */
+export interface LevelFileArrow {
+  id: string;
+  start: Cell;
+  segments: PathSegment[];
+  head: { direction: Direction };
+}
+
+export interface LevelFileStats {
+  arrowCount: number;
+  bendCount: number;
+  solutionCount: number;
+  difficultyScore: number;
+  initialAvailable: number;
+  dependencyDepth: number;
+  deadEndCount: number;
+}
+
+/** Offline-generated level JSON schema (version 1). */
+export interface LevelFile {
+  version: number;
+  level: number;
+  name: string;
+  board: { width: number; height: number };
+  difficulty: DifficultyBand;
+  hintQuota: number;
+  generation: {
+    seed: number;
+    generatorVersion: string;
+  };
+  stats: LevelFileStats;
+  solution: string[];
+  arrows: LevelFileArrow[];
 }
 
 export interface TapResult {

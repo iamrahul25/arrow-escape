@@ -1,3 +1,6 @@
+/**
+ * Memoized DFS solver improvements for denser boards.
+ */
 import { canArrowMove, getAvailableMoves } from './collision';
 import { cellKey, validatePathShape } from './geometry';
 import type { Arrow, Level } from './types';
@@ -14,20 +17,36 @@ export function arrowsFromLevel(level: Level): Arrow[] {
   }));
 }
 
+function stateKey(arrows: Arrow[]): string {
+  // Compact bitmask-like key from active ids (ids are stable).
+  return arrows
+    .filter((a) => a.active)
+    .map((a) => a.id)
+    .sort()
+    .join(',');
+}
+
 /**
- * DFS backtracking solver. Returns one valid solution sequence of arrow ids,
- * or null if unsolvable.
+ * DFS backtracking solver with state memoization.
+ * Returns one valid solution sequence of arrow ids, or null if unsolvable.
  */
 export function solveLevel(level: Level): string[] | null {
   const arrows = arrowsFromLevel(level);
   const solution: string[] = [];
+  const failed = new Set<string>();
 
   function dfs(): boolean {
     const remaining = arrows.filter((a) => a.active);
     if (remaining.length === 0) return true;
 
+    const key = stateKey(arrows);
+    if (failed.has(key)) return false;
+
     const moves = getAvailableMoves(arrows, level.gridSize);
-    if (moves.length === 0) return false;
+    if (moves.length === 0) {
+      failed.add(key);
+      return false;
+    }
 
     for (const move of moves) {
       move.active = false;
@@ -37,6 +56,7 @@ export function solveLevel(level: Level): string[] | null {
       move.active = true;
     }
 
+    failed.add(key);
     return false;
   }
 

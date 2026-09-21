@@ -1,0 +1,134 @@
+{
+  "version": 1,
+  "level": 3,
+  "name": "Clear Path",
+  "board": {
+    "width": 8,
+    "height": 8
+  },
+  "difficulty": "tutorial",
+  "hintQuota": 3,
+  "generation": {
+    "seed": 798679,
+    "generatorVersion": "1.0.0"
+  },
+  "stats": {
+    "arrowCount": 6,
+    "bendCount": 1,
+    "solutionCount": 20,
+    "difficultyScore": 16,
+    "initialAvailable": 5,
+    "dependencyDepth": 6,
+    "deadEndCount": 0
+  },
+  "solution": [
+    "A01",
+    "A02",
+    "A03",
+    "A04",
+    "A05",
+    "A06"
+  ],
+  "arrows": [
+    {
+      "id": "A01",
+      "start": {
+        "x": 7,
+        "y": 1
+      },
+      "segments": [
+        {
+          "direction": "up",
+          "length": 1
+        }
+      ],
+      "head": {
+        "direction": "up"
+      }
+    },
+    {
+      "id": "A02",
+      "start": {
+        "x": 4,
+        "y": 6
+      },
+      "segments": [
+        {
+          "direction": "right",
+          "length": 2
+        }
+      ],
+      "head": {
+        "direction": "right"
+      }
+    },
+    {
+      "id": "A03",
+      "start": {
+        "x": 3,
+        "y": 2
+      },
+      "segments": [
+        {
+          "direction": "down",
+          "length": 5
+        }
+      ],
+      "head": {
+        "direction": "down"
+      }
+    },
+    {
+      "id": "A04",
+      "start": {
+        "x": 2,
+        "y": 7
+      },
+      "segments": [
+        {
+          "direction": "up",
+          "length": 3
+        },
+        {
+          "direction": "left",
+          "length": 2
+        }
+      ],
+      "head": {
+        "direction": "left"
+      }
+    },
+    {
+      "id": "A05",
+      "start": {
+        "x": 4,
+        "y": 0
+      },
+      "segments": [
+        {
+          "direction": "right",
+          "length": 2
+        }
+      ],
+      "head": {
+        "direction": "right"
+      }
+    },
+    {
+      "id": "A06",
+      "start": {
+        "x": 2,
+        "y": 3
+      },
+      "segments": [
+        {
+          "direction": "up",
+          "length": 2
+        }
+      ],
+      "head": {
+        "direction": "up"
+      }
+    }
+  ]
+}

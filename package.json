@@ -27,6 +27,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "generate-levels": "tsx scripts/generate-levels.ts",
     "validate-levels": "tsx scripts/validate-levels.ts",
     "smoke-test": "tsx scripts/smoke-test.ts"
   },

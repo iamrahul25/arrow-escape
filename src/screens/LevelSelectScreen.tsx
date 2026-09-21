@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Header } from '../components/Header';
 import { LEVELS } from '../levels';
@@ -16,7 +16,7 @@ export function LevelSelectScreen() {
     <SafeAreaView style={styles.safe}>
       <Header title="Select Level" onBack={() => setScreen('home')} />
 
-      <View style={styles.list}>
+      <ScrollView contentContainerStyle={styles.list}>
         {LEVELS.map((level) => {
           const unlocked = isLevelUnlocked(level.id);
           const completed = progress.completedLevels.includes(level.id);
@@ -42,7 +42,7 @@ export function LevelSelectScreen() {
             </Pressable>
           );
         })}
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

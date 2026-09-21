@@ -1,9 +1,8 @@
-import { level1 } from './level1';
-import { level2 } from './level2';
-import { level3 } from './level3';
-import type { Level } from '../game/types';
+import type { Level, LevelFile } from '../game/types';
+import { levelFromFile } from '../generator/format';
+import { LEVEL_FILES } from './registry';
 
-export const LEVELS: Level[] = [level1, level2, level3];
+export const LEVELS: Level[] = LEVEL_FILES.map((file: LevelFile) => levelFromFile(file));
 
 export function getLevel(id: number): Level | undefined {
   return LEVELS.find((l) => l.id === id);
@@ -14,4 +13,6 @@ export function getNextLevelId(currentId: number): number | null {
   return next?.id ?? null;
 }
 
-export { level1, level2, level3 };
+export function getLevelFile(id: number): LevelFile | undefined {
+  return LEVEL_FILES.find((l) => l.level === id);
+}
