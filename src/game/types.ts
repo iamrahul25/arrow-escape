@@ -7,12 +7,14 @@ export interface Cell {
   y: number;
 }
 
+/**
+ * Path-based arrow: `path` is every occupied grid cell from tail → tip.
+ * Cells must form a continuous orthogonal polyline (no diagonals, no gaps).
+ * Escape direction is derived from the final segment (tip - previous).
+ */
 export interface ArrowDef {
   id: string;
-  x: number;
-  y: number;
-  direction: Direction;
-  length: number;
+  path: Cell[];
 }
 
 export interface Arrow extends ArrowDef {

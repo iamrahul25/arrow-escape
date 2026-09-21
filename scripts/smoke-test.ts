@@ -1,8 +1,7 @@
 import { GameEngine } from '../src/game/engine';
-import { level1 } from '../src/levels/level1';
-import { level2 } from '../src/levels/level2';
-import { level3 } from '../src/levels/level3';
+import { countBends } from '../src/game/geometry';
 import { solveLevel } from '../src/game/solver';
+import { level1, level2, level3, LEVELS } from '../src/levels';
 import type { Level } from '../src/game/types';
 
 function playLevel(level: Level) {
@@ -19,6 +18,17 @@ function playLevel(level: Level) {
   const snap = engine.getSnapshot();
   if (snap.status !== 'won') throw new Error(`Level ${level.id} not won`);
   console.log(`PASS level ${level.id} (${snap.moves} moves)`);
+}
+
+for (const level of LEVELS) {
+  const bends = level.arrows.map((a) => countBends(a.path));
+  const avg = bends.reduce((a, b) => a + b, 0) / bends.length;
+  console.log(
+    `Level ${level.id}: ${level.arrows.length} arrows, bends ${Math.min(...bends)}–${Math.max(...bends)} (avg ${avg.toFixed(1)})`,
+  );
+  if (bends.every((b) => b === 0)) {
+    throw new Error(`Level ${level.id} has no bent arrows`);
+  }
 }
 
 playLevel(level1);

@@ -1,0 +1,179 @@
+Use this prompt with Cursor/Claude Code:
+
+```text
+Update the Arrow Escape puzzle game so that the arrows are NOT simple straight-line arrows.
+
+The current implementation has arrows like:
+
+→────────────→
+↑
+│
+│
+↓
+
+I want the arrows to behave visually like the reference game in the provided screenshots, where each arrow is a CONTINUOUS PATH with multiple 90-degree bends/corners before reaching its arrowhead.
+
+IMPORTANT:
+- Do NOT change the core gameplay concept.
+- Do NOT make the arrows look like separate connected arrows.
+- Each arrow must be ONE continuous path.
+- The path can contain multiple horizontal and vertical segments.
+- The final segment must end in an arrowhead indicating the escape direction.
+- Use clean 90° turns with rounded joins/corners.
+- Keep the visual style minimal and similar to the reference: dark navy paths, white background, clean rounded strokes.
+
+Example:
+
+Instead of:
+
+→────────────────────▶
+
+Create paths like:
+
+        ┌──────────────→
+        │
+   ┌────┘
+   │
+   │
+   └───────────────→
+
+
+Or:
+
+←──────────────┐
+               │
+       ┌───────┘
+       │
+       └──────────────→
+
+
+Or:
+
+       ┌─────────────┐
+       │             │
+       │     ┌───────┘
+       │     │
+       └─────┘
+             └──────→
+
+GAMEPLAY REQUIREMENT:
+
+The bends are not merely decorative. The complete bent path represents the arrow's escape trajectory.
+
+Therefore, update the game data model from something like:
+
+{
+  x,
+  y,
+  direction,
+  length
+}
+
+to a path-based model, for example:
+
+{
+  id: "arrow-1",
+  path: [
+    { x: 1, y: 1 },
+    { x: 2, y: 1 },
+    { x: 3, y: 1 },
+    { x: 3, y: 2 },
+    { x: 3, y: 3 },
+    { x: 4, y: 3 },
+    { x: 5, y: 3 }
+  ],
+  direction: "right"
+}
+
+The final point determines the arrowhead direction.
+
+RENDERING:
+
+Use React Native Skia to draw each arrow as a single continuous path.
+
+Requirements:
+- horizontal and vertical segments only
+- 90° turns
+- rounded line joins
+- rounded line caps where appropriate
+- consistent stroke width
+- arrowhead at the final endpoint
+- no diagonal segments
+- no gaps between segments
+
+COLLISION / GAME LOGIC:
+
+The collision engine must also understand the COMPLETE BENT PATH.
+
+When an arrow is tapped:
+1. Identify the arrow.
+2. Determine its complete path.
+3. Check whether any part of that path is blocked by another active arrow.
+4. If blocked, the arrow cannot escape.
+5. If completely unobstructed, animate the entire bent path toward the exit.
+6. Remove the arrow after it escapes.
+7. Check whether the level is complete.
+
+Do NOT treat the arrow as a bounding box or as only its starting/final direction.
+
+LEVEL DESIGN:
+
+Update the initial 3 levels so they contain multiple bent arrows.
+
+Level 1:
+- Easy
+- Approximately 8–12 arrows
+- Each arrow should have 1–2 bends
+- Introduce the player to the path mechanic
+
+Level 2:
+- Medium
+- Approximately 15–20 arrows
+- Mostly 2–3 bends per arrow
+- Paths should cross/interlock and require solving the correct order
+
+Level 3:
+- Hard
+- Approximately 25–35 arrows
+- Multiple bends per arrow
+- Some paths should have 3–5 bends
+- Create a puzzle visually similar in complexity to the reference screenshot
+
+VERY IMPORTANT:
+
+The arrows should look like this type of structure:
+
+┌──────────────→
+│
+└───────┐
+        │
+        └────────→
+
+rather than:
+
+──────────────→
+
+The overall board should feel like a maze of interlocking arrow paths.
+
+Also update the level solver so it works with these multi-segment paths rather than assuming every arrow is a straight line.
+
+Keep the existing UI/header/hearts/hints/level system unchanged unless a modification is necessary for the new path-based arrow system.
+
+Before changing the UI, first refactor the game model, rendering, collision detection, and level data to support arbitrary orthogonal paths.
+```
+
+### One important improvement
+
+I'd actually use **path points + a generated arrowhead**, rather than storing `direction + length`. That will let you create levels like the screenshot:
+
+```text
+      ┌───────────────→
+      │
+  ┌───┘
+  │
+  │       ┌─────────┐
+  │       │         │
+  └───────┘         └──────→
+```
+
+while keeping the **same game engine**. This will also make creating future Level 4–100 much easier.

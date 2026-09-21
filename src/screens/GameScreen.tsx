@@ -14,6 +14,7 @@ import { Lives } from '../components/Lives';
 import { getNextLevelId, getLevel } from '../levels';
 import { useGameStore } from '../store/gameStore';
 import { colors, spacing } from '../theme';
+import { config } from '../config';
 
 export function GameScreen() {
   const { width, height } = useWindowDimensions();
@@ -46,7 +47,10 @@ export function GameScreen() {
 
   const level = getLevel(snapshot.levelId);
   const gridSize = level?.gridSize ?? 8;
-  const boardSize = Math.min(width - 32, height * 0.55);
+  const boardSize = Math.min(
+    width - config.board.horizontalInset,
+    height * config.board.maxHeightFraction,
+  );
   const remaining = snapshot.arrows.filter((a) => a.active).length;
   const hasNext = getNextLevelId(snapshot.levelId) !== null;
   const showResult = snapshot.status === 'won' || snapshot.status === 'lost';

@@ -1,12 +1,17 @@
 import { canArrowMove, getAvailableMoves } from './collision';
+import { cellKey, validatePathShape } from './geometry';
 import type { Arrow, Level } from './types';
 
 export function cloneArrows(arrows: Arrow[]): Arrow[] {
-  return arrows.map((a) => ({ ...a }));
+  return arrows.map((a) => ({ ...a, path: a.path.map((c) => ({ ...c })) }));
 }
 
 export function arrowsFromLevel(level: Level): Arrow[] {
-  return level.arrows.map((a) => ({ ...a, active: true }));
+  return level.arrows.map((a) => ({
+    id: a.id,
+    path: a.path.map((c) => ({ ...c })),
+    active: true,
+  }));
 }
 
 /**
@@ -77,25 +82,14 @@ export function validateLevel(level: Level): {
   const occupied = new Map<string, string>();
 
   for (const arrow of level.arrows) {
-    if (arrow.length < 1) {
-      errors.push(`Arrow ${arrow.id} has invalid length`);
+    const shapeError = validatePathShape(arrow.path, level.gridSize);
+    if (shapeError) {
+      errors.push(`Arrow ${arrow.id}: ${shapeError}`);
+      continue;
     }
 
-    const { x, y, direction, length } = arrow;
-    for (let i = 0; i < length; i++) {
-      let cx = x;
-      let cy = y;
-      if (direction === 'right') cx = x + i;
-      if (direction === 'left') cx = x - i;
-      if (direction === 'down') cy = y + i;
-      if (direction === 'up') cy = y - i;
-
-      if (cx < 0 || cy < 0 || cx >= level.gridSize || cy >= level.gridSize) {
-        errors.push(`Arrow ${arrow.id} goes out of bounds`);
-        break;
-      }
-
-      const key = `${cx},${cy}`;
+    for (const cell of arrow.path) {
+      const key = cellKey(cell);
       if (occupied.has(key)) {
         errors.push(`Arrow ${arrow.id} overlaps ${occupied.get(key)} at ${key}`);
       } else {

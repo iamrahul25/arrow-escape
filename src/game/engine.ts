@@ -8,13 +8,12 @@ import type {
   Level,
   TapResult,
 } from './types';
-
-const DEFAULT_LIVES = 3;
+import { config } from '../config';
 
 export class GameEngine {
   private level: Level | null = null;
   private arrows: Arrow[] = [];
-  private lives = DEFAULT_LIVES;
+  private lives = config.lives;
   private hints = 0;
   private moves = 0;
   private startTime = 0;
@@ -24,7 +23,7 @@ export class GameEngine {
   loadLevel(level: Level): GameSnapshot {
     this.level = level;
     this.arrows = arrowsFromLevel(level);
-    this.lives = DEFAULT_LIVES;
+    this.lives = config.lives;
     this.hints = level.hintQuota;
     this.moves = 0;
     this.startTime = Date.now();
