@@ -1,6 +1,5 @@
 import { canArrowMove, getAvailableMoves } from './collision';
 import { findArrowAt, pixelToGrid } from './geometry';
-import { arrowsFromLevel, getHintArrowId } from './solver';
 import type {
   Arrow,
   GameSnapshot,
@@ -9,6 +8,14 @@ import type {
   TapResult,
 } from './types';
 import { config } from '../config';
+
+function arrowsFromLevel(level: Level): Arrow[] {
+  return level.arrows.map((a) => ({
+    id: a.id,
+    path: a.path.map((c) => ({ ...c })),
+    active: true,
+  }));
+}
 
 export class GameEngine {
   private level: Level | null = null;
@@ -130,7 +137,7 @@ export class GameEngine {
     if (!this.level || this.status !== 'playing') return null;
     if (this.hints <= 0) return this.hintArrowId;
 
-    const id = getHintArrowId(this.arrows, this.level.gridSize);
+    const id = getAvailableMoves(this.arrows, this.level.gridSize)[0]?.id ?? null;
     if (!id) return null;
 
     this.hints -= 1;

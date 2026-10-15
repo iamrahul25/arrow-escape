@@ -51,11 +51,6 @@ arrow-escape-app/
 ├── package.json
 ├── tsconfig.json
 ├── assets/                 # Icons & splash
-├── scripts/                # Level tooling & smoke tests
-│   ├── generate-levels.ts
-│   ├── validate-levels.ts
-│   ├── smoke-test.ts
-│   └── ...
 └── src/
     ├── config.ts           # Tunables (arrow size, animation, board)
     ├── theme.ts            # Colors & shared styles
@@ -69,13 +64,12 @@ arrow-escape-app/
     │   ├── engine.ts       # Core game loop / state transitions
     │   ├── collision.ts
     │   ├── geometry.ts
-    │   ├── directions.ts
-    │   └── solver.ts       # Hints / solvability helpers
+    │   └── directions.ts
     ├── levels/
-    │   ├── index.ts
-    │   ├── level1.ts
-    │   ├── level2.ts
-    │   └── level3.ts
+    │   ├── index.ts        # Loaded levels (LEVELS, getLevel)
+    │   ├── format.ts       # Level JSON → Level conversion
+    │   ├── registry.ts     # Imports every level JSON file
+    │   └── json/           # level-XX.json data files
     ├── screens/
     │   ├── HomeScreen.tsx
     │   ├── LevelSelectScreen.tsx
@@ -88,12 +82,9 @@ arrow-escape-app/
         └── storage.ts
 ```
 
-## Useful scripts
+## Adding levels
 
-```bash
-npm run validate-levels   # Check level data
-npm run smoke-test        # Quick engine/level smoke check
-```
+Put a `level-XX.json` file in `src/levels/json/`, then import it and add it to the list in `src/levels/registry.ts`. Each file needs `version`, `level`, `name`, `board` (`width` = `height`), `hintQuota`, and `arrows`. Each arrow has an `id`, a `start` cell, a list of `segments` (`direction` + `length`), and `head.direction`, which must match the last segment. Any other fields are ignored.
 
 ## Stack
 

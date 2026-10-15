@@ -1,5 +1,5 @@
 import type { Level, LevelFile } from '../game/types';
-import { levelFromFile } from '../generator/format';
+import { levelFromFile } from './format';
 import { LEVEL_FILES } from './registry';
 
 export const LEVELS: Level[] = LEVEL_FILES.map((file: LevelFile) => levelFromFile(file));
