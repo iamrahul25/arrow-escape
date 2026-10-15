@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGameStore } from '../store/gameStore';
 import { colors, spacing } from '../theme';
+import { config } from '../config';
 
 export function HomeScreen() {
   const setScreen = useGameStore((s) => s.setScreen);
@@ -29,6 +30,12 @@ export function HomeScreen() {
           <Pressable style={styles.secondary} onPress={() => setScreen('levels')}>
             <Text style={styles.secondaryText}>Levels</Text>
           </Pressable>
+
+          {config.showLevelGenerator ? (
+            <Pressable style={styles.secondary} onPress={() => setScreen('generator')}>
+              <Text style={styles.secondaryText}>Level Generator</Text>
+            </Pressable>
+          ) : null}
 
           <Pressable style={styles.link} onPress={() => setScreen('settings')}>
             <Text style={styles.linkText}>⚙  Settings</Text>

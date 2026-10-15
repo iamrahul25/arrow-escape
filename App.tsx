@@ -4,6 +4,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GameScreen } from './src/screens/GameScreen';
+import { GeneratorScreen } from './src/screens/GeneratorScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { LevelSelectScreen } from './src/screens/LevelSelectScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
@@ -20,6 +21,8 @@ function RootNavigator() {
       return <GameScreen />;
     case 'settings':
       return <SettingsScreen />;
+    case 'generator':
+      return <GeneratorScreen />;
     case 'home':
     default:
       return <HomeScreen />;

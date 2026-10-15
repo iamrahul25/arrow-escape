@@ -1,5 +1,5 @@
 import { DIRECTION_DELTA } from './directions';
-import type { Arrow, ArrowDef, Cell, Direction } from './types';
+import type { Arrow, ArrowDef, BoardSize, Cell, Direction } from './types';
 
 export function cellKey(cell: Cell): string {
   return `${cell.x},${cell.y}`;
@@ -46,7 +46,7 @@ export function getArrowDirection(arrow: Pick<ArrowDef, 'path'>): Direction {
  */
 export function getEscapeSweep(
   arrow: Pick<ArrowDef, 'path'>,
-  gridSize: number,
+  board: BoardSize,
 ): Cell[] {
   const tip = getArrowTip(arrow);
   const direction = getArrowDirection(arrow);
@@ -57,7 +57,7 @@ export function getEscapeSweep(
   let x = tip.x + delta.x;
   let y = tip.y + delta.y;
 
-  while (x >= 0 && y >= 0 && x < gridSize && y < gridSize) {
+  while (x >= 0 && y >= 0 && x < board.width && y < board.height) {
     const key = `${x},${y}`;
     if (!own.has(key)) {
       corridor.push({ x, y });
@@ -84,11 +84,11 @@ export function pixelToGrid(
   touchX: number,
   touchY: number,
   cellSize: number,
-  gridSize: number,
+  board: BoardSize,
 ): Cell | null {
   const x = Math.floor(touchX / cellSize);
   const y = Math.floor(touchY / cellSize);
-  if (x < 0 || y < 0 || x >= gridSize || y >= gridSize) return null;
+  if (x < 0 || y < 0 || x >= board.width || y >= board.height) return null;
   return { x, y };
 }
 

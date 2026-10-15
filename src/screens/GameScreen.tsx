@@ -11,7 +11,7 @@ import { ArrowBoard } from '../components/ArrowBoard';
 import { GameResult } from '../components/GameResult';
 import { Header } from '../components/Header';
 import { Lives } from '../components/Lives';
-import { getNextLevelId, getLevel } from '../levels';
+import { getNextLevelId } from '../levels';
 import { useGameStore } from '../store/gameStore';
 import { colors, spacing } from '../theme';
 import { config } from '../config';
@@ -19,6 +19,9 @@ import { config } from '../config';
 export function GameScreen() {
   const { width, height } = useWindowDimensions();
   const snapshot = useGameStore((s) => s.snapshot);
+  const level = useGameStore((s) => s.level);
+  const playtest = useGameStore((s) => s.playtest);
+  const exitGame = useGameStore((s) => s.exitGame);
   const elapsedSeconds = useGameStore((s) => s.elapsedSeconds);
   const shakingArrowId = useGameStore((s) => s.shakingArrowId);
   const escapingArrowId = useGameStore((s) => s.escapingArrowId);
@@ -37,7 +40,7 @@ export function GameScreen() {
     return () => clearInterval(id);
   }, [tick]);
 
-  if (!snapshot) {
+  if (!snapshot || !level) {
     return (
       <SafeAreaView style={styles.safe}>
         <Text style={styles.loading}>Loading…</Text>
@@ -45,21 +48,20 @@ export function GameScreen() {
     );
   }
 
-  const level = getLevel(snapshot.levelId);
-  const gridSize = level?.gridSize ?? 8;
-  const boardSize = Math.min(
-    width - config.board.horizontalInset,
-    height * config.board.maxHeightFraction,
+  const cellSize = Math.min(
+    (width - config.board.horizontalInset) / level.width,
+    (height * config.board.maxHeightFraction) / level.height,
   );
   const remaining = snapshot.arrows.filter((a) => a.active).length;
-  const hasNext = getNextLevelId(snapshot.levelId) !== null;
+  const hasNext = playtest || getNextLevelId(snapshot.levelId) !== null;
   const showResult = snapshot.status === 'won' || snapshot.status === 'lost';
+  const title = playtest ? 'Play Test' : `Level ${snapshot.levelId}`;
 
   return (
     <SafeAreaView style={styles.safe}>
       <Header
-        title={`Level ${snapshot.levelId}`}
-        onBack={() => setScreen('levels')}
+        title={title}
+        onBack={exitGame}
         onAction={() => {
           if (snapshot.status === 'paused') resume();
           else pause();
@@ -76,8 +78,9 @@ export function GameScreen() {
       <View style={styles.boardWrap}>
         <ArrowBoard
           arrows={snapshot.arrows}
-          gridSize={gridSize}
-          boardSize={boardSize}
+          board={level}
+          mask={level.mask}
+          cellSize={cellSize}
           hintArrowId={snapshot.hintArrowId}
           shakingArrowId={shakingArrowId}
           escapingArrowId={escapingArrowId}
@@ -114,10 +117,11 @@ export function GameScreen() {
       <GameResult
         visible={showResult}
         won={snapshot.status === 'won'}
-        levelId={snapshot.levelId}
+        title={title}
         moves={snapshot.moves}
         seconds={elapsedSeconds}
         hasNext={hasNext}
+        nextLabel={playtest ? 'Back to Generator' : 'Next Level'}
         onNext={completeAndAdvance}
         onReplay={restartLevel}
         onHome={() => setScreen('home')}

@@ -78,7 +78,7 @@ export class GameEngine {
 
     this.hintArrowId = null;
 
-    if (!canArrowMove(arrow, this.arrows, this.level.gridSize)) {
+    if (!canArrowMove(arrow, this.arrows, this.level)) {
       this.lives -= 1;
       if (this.lives <= 0) {
         this.lives = 0;
@@ -114,7 +114,7 @@ export class GameEngine {
 
   tapAt(touchX: number, touchY: number, cellSize: number): TapResult | null {
     if (!this.level) return null;
-    const cell = pixelToGrid(touchX, touchY, cellSize, this.level.gridSize);
+    const cell = pixelToGrid(touchX, touchY, cellSize, this.level);
     if (!cell) return null;
     const arrow = findArrowAt(this.arrows, cell);
     if (!arrow) return null;
@@ -125,19 +125,19 @@ export class GameEngine {
     if (!this.level) return false;
     const arrow = this.arrows.find((a) => a.id === id);
     if (!arrow) return false;
-    return canArrowMove(arrow, this.arrows, this.level.gridSize);
+    return canArrowMove(arrow, this.arrows, this.level);
   }
 
   getAvailableMoves(): Arrow[] {
     if (!this.level) return [];
-    return getAvailableMoves(this.arrows, this.level.gridSize);
+    return getAvailableMoves(this.arrows, this.level);
   }
 
   getHint(): string | null {
     if (!this.level || this.status !== 'playing') return null;
     if (this.hints <= 0) return this.hintArrowId;
 
-    const id = getAvailableMoves(this.arrows, this.level.gridSize)[0]?.id ?? null;
+    const id = getAvailableMoves(this.arrows, this.level)[0]?.id ?? null;
     if (!id) return null;
 
     this.hints -= 1;

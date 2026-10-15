@@ -5,10 +5,11 @@ import { colors, spacing } from '../theme';
 interface GameResultProps {
   visible: boolean;
   won: boolean;
-  levelId: number;
+  title: string;
   moves: number;
   seconds: number;
   hasNext: boolean;
+  nextLabel: string;
   onNext: () => void;
   onReplay: () => void;
   onHome: () => void;
@@ -23,10 +24,11 @@ function formatTime(seconds: number): string {
 export function GameResult({
   visible,
   won,
-  levelId,
+  title,
   moves,
   seconds,
   hasNext,
+  nextLabel,
   onNext,
   onReplay,
   onHome,
@@ -37,7 +39,7 @@ export function GameResult({
         <View style={styles.card}>
           <Text style={styles.emoji}>{won ? '🎉' : '💔'}</Text>
           <Text style={styles.title}>
-            {won ? `Level ${levelId} Complete!` : 'Out of Lives'}
+            {won ? `${title} Complete!` : 'Out of Lives'}
           </Text>
           {won ? (
             <>
@@ -51,7 +53,7 @@ export function GameResult({
 
           {won && hasNext ? (
             <Pressable style={styles.primary} onPress={onNext}>
-              <Text style={styles.primaryText}>Next Level</Text>
+              <Text style={styles.primaryText}>{nextLabel}</Text>
             </Pressable>
           ) : null}
 

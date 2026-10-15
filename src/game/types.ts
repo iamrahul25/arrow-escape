@@ -26,10 +26,16 @@ export interface Arrow extends ArrowDef {
   active: boolean;
 }
 
-export interface Level {
+export interface BoardSize {
+  width: number;
+  height: number;
+}
+
+export interface Level extends BoardSize {
   id: number;
   name: string;
-  gridSize: number;
+  /** Row-major playable cells (length width × height); null = every cell is playable. */
+  mask: boolean[] | null;
   arrows: ArrowDef[];
   hintQuota: number;
 }
@@ -47,7 +53,12 @@ export interface LevelFile {
   version: number;
   level: number;
   name: string;
-  board: { width: number; height: number };
+  board: {
+    width: number;
+    height: number;
+    /** One string per row: '#' = playable cell, '.' = empty. Omitted = full rectangle. */
+    mask?: string[];
+  };
   hintQuota: number;
   arrows: LevelFileArrow[];
 }

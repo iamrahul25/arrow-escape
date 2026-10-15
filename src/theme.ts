@@ -10,6 +10,7 @@ export const colors = {
   white: '#FFFFFF',
   hint: '#FFB300',
   blocked: '#FF5252',
+  cellOn: '#E3ECF7',
 };
 
 export const spacing = {

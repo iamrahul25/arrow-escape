@@ -37,18 +37,48 @@ export function arrowDefFromFile(arrow: LevelFileArrow): ArrowDef {
   return { id: arrow.id, path };
 }
 
+export const MASK_ON = '#';
+export const MASK_OFF = '.';
+
+export function maskFromRows(rows: string[], width: number, height: number): boolean[] {
+  if (rows.length !== height || rows.some((r) => r.length !== width)) {
+    throw new Error(`Mask must be ${height} rows of ${width} characters`);
+  }
+  return rows.flatMap((row) => [...row].map((ch) => ch === MASK_ON));
+}
+
+export function maskToRows(mask: boolean[], width: number, height: number): string[] {
+  const rows: string[] = [];
+  for (let y = 0; y < height; y++) {
+    let row = '';
+    for (let x = 0; x < width; x++) {
+      row += mask[y * width + x] ? MASK_ON : MASK_OFF;
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+
 export function levelFromFile(file: LevelFile): Level {
-  if (file.board.width !== file.board.height) {
-    throw new Error(
-      `Level ${file.level}: non-square boards are not supported (got ${file.board.width}×${file.board.height})`,
-    );
+  const { width, height } = file.board;
+  const mask = file.board.mask ? maskFromRows(file.board.mask, width, height) : null;
+  const arrows = file.arrows.map(arrowDefFromFile);
+
+  for (const arrow of arrows) {
+    for (const c of arrow.path) {
+      if (c.x < 0 || c.y < 0 || c.x >= width || c.y >= height) {
+        throw new Error(`Level ${file.level}: arrow ${arrow.id} leaves the ${width}×${height} board`);
+      }
+    }
   }
 
   return {
     id: file.level,
     name: file.name,
-    gridSize: file.board.width,
+    width,
+    height,
+    mask,
     hintQuota: file.hintQuota,
-    arrows: file.arrows.map(arrowDefFromFile),
+    arrows,
   };
 }

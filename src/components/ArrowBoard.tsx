@@ -15,32 +15,32 @@ import {
   runOnJS,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import {
-  getArrowCells,
-  getArrowDirection,
-  directionToAngle,
-  gridToPixel,
-} from '../game/geometry';
-import type { Arrow, Cell, Direction } from '../game/types';
+import { getArrowCells, gridToPixel } from '../game/geometry';
+import type { Arrow, BoardSize, Cell, Direction } from '../game/types';
 import { colors } from '../theme';
 import { DIRECTION_DELTA } from '../game/directions';
 import { config } from '../config';
+import {
+  arrowHeadSize,
+  arrowStrokeWidth,
+  buildStaticGraphics,
+  makeBodyPath,
+  makeHeadPath,
+  type Pt,
+} from './arrowGraphics';
 
 interface ArrowBoardProps {
   arrows: Arrow[];
-  gridSize: number;
-  boardSize: number;
+  board: BoardSize;
+  /** Row-major playable cells; null = whole rectangle. */
+  mask: boolean[] | null;
+  cellSize: number;
   hintArrowId: string | null;
   shakingArrowId: string | null;
   escapingArrowId: string | null;
   onTapArrow: (id: string) => void;
   onEscapeDone: () => void;
   onShakeDone: () => void;
-}
-
-interface Pt {
-  x: number;
-  y: number;
 }
 
 function dist(a: Pt, b: Pt): number {
@@ -118,76 +118,6 @@ function slicePolyline(points: Pt[], startD: number, endD: number): Pt[] {
   return result;
 }
 
-function makeBodyPath(points: Pt[], tipPullBack: number, angle: number) {
-  const body = Skia.Path.Make();
-  if (points.length === 0) return body;
-
-  body.moveTo(points[0].x, points[0].y);
-  for (let i = 1; i < points.length; i++) {
-    const isLast = i === points.length - 1;
-    if (isLast && tipPullBack > 0) {
-      body.lineTo(
-        points[i].x - Math.cos(angle) * tipPullBack,
-        points[i].y - Math.sin(angle) * tipPullBack,
-      );
-    } else {
-      body.lineTo(points[i].x, points[i].y);
-    }
-  }
-  return body;
-}
-
-/** Filled triangle with soft corners (border-radius style). */
-function makeRoundedTriangle(a: Pt, b: Pt, c: Pt, radius: number) {
-  const verts = [a, b, c];
-  const path = Skia.Path.Make();
-
-  for (let i = 0; i < 3; i++) {
-    const prev = verts[(i + 2) % 3];
-    const curr = verts[i];
-    const next = verts[(i + 1) % 3];
-
-    const toPrevX = prev.x - curr.x;
-    const toPrevY = prev.y - curr.y;
-    const toNextX = next.x - curr.x;
-    const toNextY = next.y - curr.y;
-    const lenPrev = Math.hypot(toPrevX, toPrevY) || 1;
-    const lenNext = Math.hypot(toNextX, toNextY) || 1;
-    const r = Math.min(radius, lenPrev * 0.45, lenNext * 0.45);
-
-    const startX = curr.x + (toPrevX / lenPrev) * r;
-    const startY = curr.y + (toPrevY / lenPrev) * r;
-    const endX = curr.x + (toNextX / lenNext) * r;
-    const endY = curr.y + (toNextY / lenNext) * r;
-
-    if (i === 0) {
-      path.moveTo(startX, startY);
-    } else {
-      path.lineTo(startX, startY);
-    }
-    // Control point at the sharp corner → soft radius like CSS border-radius.
-    path.quadTo(curr.x, curr.y, endX, endY);
-  }
-
-  path.close();
-  return path;
-}
-
-function makeHeadPath(tip: Pt, angle: number, headSize: number) {
-  const left = angle + Math.PI * 0.82;
-  const right = angle - Math.PI * 0.82;
-  const wingL: Pt = {
-    x: tip.x + Math.cos(left) * headSize,
-    y: tip.y + Math.sin(left) * headSize,
-  };
-  const wingR: Pt = {
-    x: tip.x + Math.cos(right) * headSize,
-    y: tip.y + Math.sin(right) * headSize,
-  };
-  const radius = headSize * config.arrow.headCornerRadiusFactor;
-  return makeRoundedTriangle(tip, wingL, wingR, radius);
-}
-
 function tipDirectionFromCells(cells: Cell[]): Direction {
   const tip = cells[cells.length - 1];
   const prev = cells[cells.length - 2];
@@ -206,7 +136,7 @@ function tipDirectionFromCells(cells: Cell[]): Direction {
 function buildEscapeRoute(
   cells: Cell[],
   cellSize: number,
-  gridSize: number,
+  exitCells: number,
 ): Pt[] {
   const points = cells.map((c) => gridToPixel(c, cellSize));
   if (points.length < 2) return points;
@@ -214,7 +144,7 @@ function buildEscapeRoute(
   const direction = tipDirectionFromCells(cells);
   const delta = DIRECTION_DELTA[direction];
   const tip = points[points.length - 1];
-  const exitDist = (gridSize + 2) * cellSize;
+  const exitDist = (exitCells + 2) * cellSize;
 
   points.push({
     x: tip.x + delta.x * exitDist,
@@ -277,25 +207,10 @@ function buildCrawlGraphics(
   };
 }
 
-function buildStaticGraphics(arrow: Arrow, cellSize: number, headSize: number) {
-  const cells = getArrowCells(arrow);
-  const points = cells.map((c) => gridToPixel(c, cellSize));
-  const angle = directionToAngle(getArrowDirection(arrow));
-  return {
-    body: makeBodyPath(
-      points,
-      headSize * config.arrow.tipPullbackFactor,
-      angle,
-    ),
-    head: makeHeadPath(points[points.length - 1], angle, headSize),
-    tail: points[0] ?? null,
-  };
-}
-
 function AnimatedArrow({
   arrow,
   cellSize,
-  gridSize,
+  board,
   isHint,
   isShaking,
   isEscaping,
@@ -304,7 +219,7 @@ function AnimatedArrow({
 }: {
   arrow: Arrow;
   cellSize: number;
-  gridSize: number;
+  board: BoardSize;
   isHint: boolean;
   isShaking: boolean;
   isEscaping: boolean;
@@ -314,15 +229,13 @@ function AnimatedArrow({
   const shakeX = useSharedValue(0);
   const [escapeT, setEscapeT] = useState(0);
 
-  const headSize = cellSize * config.arrow.headSizeFactor;
-  const strokeWidth = Math.max(
-    config.arrow.strokeWidthMin,
-    cellSize * config.arrow.strokeWidthFactor,
-  );
+  const headSize = arrowHeadSize(cellSize);
+  const strokeWidth = arrowStrokeWidth(cellSize);
 
+  const exitCells = Math.max(board.width, board.height);
   const escapeRoute = useMemo(
-    () => buildEscapeRoute(getArrowCells(arrow), cellSize, gridSize),
-    [arrow, cellSize, gridSize],
+    () => buildEscapeRoute(getArrowCells(arrow), cellSize, exitCells),
+    [arrow, cellSize, exitCells],
   );
 
   useEffect(() => {
@@ -412,8 +325,9 @@ function AnimatedArrow({
 
 export function ArrowBoard({
   arrows,
-  gridSize,
-  boardSize,
+  board,
+  mask,
+  cellSize,
   hintArrowId,
   shakingArrowId,
   escapingArrowId,
@@ -421,7 +335,9 @@ export function ArrowBoard({
   onEscapeDone,
   onShakeDone,
 }: ArrowBoardProps) {
-  const cellSize = boardSize / gridSize;
+  const { width, height } = board;
+  const pixelWidth = width * cellSize;
+  const pixelHeight = height * cellSize;
 
   const visibleArrows = useMemo(() => {
     return arrows.filter((a) => a.active || a.id === escapingArrowId);
@@ -432,7 +348,7 @@ export function ArrowBoard({
       if (escapingArrowId) return;
       const gx = Math.floor(x / cellSize);
       const gy = Math.floor(y / cellSize);
-      if (gx < 0 || gy < 0 || gx >= gridSize || gy >= gridSize) return;
+      if (gx < 0 || gy < 0 || gx >= width || gy >= height) return;
 
       for (let i = visibleArrows.length - 1; i >= 0; i--) {
         const arrow = visibleArrows[i];
@@ -443,7 +359,7 @@ export function ArrowBoard({
         }
       }
     },
-    [cellSize, gridSize, visibleArrows, onTapArrow, escapingArrowId],
+    [cellSize, width, height, visibleArrows, onTapArrow, escapingArrowId],
   );
 
   const tapGesture = useMemo(
@@ -465,8 +381,9 @@ export function ArrowBoard({
 
   const gridDots = useMemo(() => {
     const dots: { x: number; y: number }[] = [];
-    for (let y = 0; y < gridSize; y++) {
-      for (let x = 0; x < gridSize; x++) {
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (mask && !mask[y * width + x]) continue;
         if (tipCells.has(`${x},${y}`)) continue;
         dots.push({
           x: x * cellSize + cellSize / 2,
@@ -475,15 +392,15 @@ export function ArrowBoard({
       }
     }
     return dots;
-  }, [gridSize, cellSize, tipCells]);
+  }, [width, height, mask, cellSize, tipCells]);
 
   const dotColor = `rgba(23, 35, 63, ${config.board.dotOpacity})`;
 
   return (
-    <View style={[styles.board, { width: boardSize, height: boardSize }]}>
+    <View style={[styles.board, { width: pixelWidth, height: pixelHeight }]}>
       <GestureDetector gesture={tapGesture}>
         <View>
-          <Canvas style={{ width: boardSize, height: boardSize }}>
+          <Canvas style={{ width: pixelWidth, height: pixelHeight }}>
             {gridDots.map((dot, idx) => (
               <Circle
                 key={idx}
@@ -498,7 +415,7 @@ export function ArrowBoard({
                 key={arrow.id}
                 arrow={arrow}
                 cellSize={cellSize}
-                gridSize={gridSize}
+                board={board}
                 isHint={hintArrowId === arrow.id}
                 isShaking={shakingArrowId === arrow.id}
                 isEscaping={escapingArrowId === arrow.id}

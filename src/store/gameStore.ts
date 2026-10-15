@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { GameEngine } from '../game/engine';
-import type { GameSnapshot, ProgressData, TapResult } from '../game/types';
+import type { GameSnapshot, Level, ProgressData, TapResult } from '../game/types';
 import { getLevel, getNextLevelId, LEVELS } from '../levels';
 import { config } from '../config';
 import {
@@ -16,11 +16,15 @@ import {
   hapticWin,
 } from '../utils/haptics';
 
-type Screen = 'home' | 'levels' | 'game' | 'settings';
+type Screen = 'home' | 'levels' | 'game' | 'settings' | 'generator';
 
 interface GameStore {
   screen: Screen;
   progress: ProgressData;
+  /** Level currently loaded in the engine. */
+  level: Level | null;
+  /** True when playing a generator level: progress is not saved and exits return to the generator. */
+  playtest: boolean;
   snapshot: GameSnapshot | null;
   lastResult: TapResult | null;
   elapsedSeconds: number;
@@ -31,6 +35,8 @@ interface GameStore {
   init: () => Promise<void>;
   setScreen: (screen: Screen) => void;
   startLevel: (levelId: number) => void;
+  startPlaytest: (level: Level) => void;
+  exitGame: () => void;
   tapArrow: (arrowId: string) => TapResult | null;
   useHint: () => string | null;
   restartLevel: () => void;
@@ -50,6 +56,8 @@ const engine = new GameEngine();
 export const useGameStore = create<GameStore>((set, get) => ({
   screen: 'home',
   progress: DEFAULT_PROGRESS,
+  level: null,
+  playtest: false,
   snapshot: null,
   lastResult: null,
   elapsedSeconds: 0,
@@ -70,12 +78,32 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const snapshot = engine.loadLevel(level);
     set({
       screen: 'game',
+      level,
+      playtest: false,
       snapshot,
       lastResult: null,
       elapsedSeconds: 0,
       shakingArrowId: null,
       escapingArrowId: null,
     });
+  },
+
+  startPlaytest: (level) => {
+    const snapshot = engine.loadLevel(level);
+    set({
+      screen: 'game',
+      level,
+      playtest: true,
+      snapshot,
+      lastResult: null,
+      elapsedSeconds: 0,
+      shakingArrowId: null,
+      escapingArrowId: null,
+    });
+  },
+
+  exitGame: () => {
+    set({ screen: get().playtest ? 'generator' : 'levels' });
   },
 
   tapArrow: (arrowId) => {
@@ -96,7 +124,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       if (result.levelComplete) {
         void hapticWin(progress.settings.haptics);
-        void get().markLevelComplete(next.levelId, next.moves);
+        if (!get().playtest) {
+          void get().markLevelComplete(next.levelId, next.moves);
+        }
       }
     } else if (result.blocked) {
       void hapticBlocked(progress.settings.haptics);
@@ -152,8 +182,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   completeAndAdvance: () => {
-    const { snapshot } = get();
+    const { snapshot, playtest } = get();
     if (!snapshot) return;
+    if (playtest) {
+      set({ screen: 'generator' });
+      return;
+    }
     const nextId = getNextLevelId(snapshot.levelId);
     if (nextId) {
       get().startLevel(nextId);

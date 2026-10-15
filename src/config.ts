@@ -12,6 +12,9 @@ export const config = {
    */
   unlockAllLevels: true,
 
+  /** Show the Level Generator (level design tool) on the home screen. Turn off before shipping. */
+  showLevelGenerator: true,
+
   arrow: {
     /** Stroke width as a fraction of cell size. */
     strokeWidthFactor: 0.15,

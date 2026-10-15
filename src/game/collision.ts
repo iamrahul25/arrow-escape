@@ -6,17 +6,17 @@ import {
   cellsOverlap,
 } from './geometry';
 import { DIRECTION_DELTA } from './directions';
-import type { Arrow, Cell } from './types';
+import type { Arrow, BoardSize, Cell } from './types';
 
 /**
  * An arrow can escape if the straight line ahead of its arrowhead
  * (tip direction only) is clear of other active arrows.
  * Bent body cells do not need a clear ray — only the tip corridor matters.
  */
-export function canArrowMove(arrow: Arrow, arrows: Arrow[], gridSize: number): boolean {
+export function canArrowMove(arrow: Arrow, arrows: Arrow[], board: BoardSize): boolean {
   if (!arrow.active) return false;
 
-  const corridor = getEscapeSweep(arrow, gridSize);
+  const corridor = getEscapeSweep(arrow, board);
   if (corridor.length === 0) return true;
 
   for (const other of arrows) {
@@ -32,9 +32,9 @@ export function canArrowMove(arrow: Arrow, arrows: Arrow[], gridSize: number): b
 export function getBlockingArrow(
   arrow: Arrow,
   arrows: Arrow[],
-  gridSize: number,
+  board: BoardSize,
 ): Arrow | null {
-  const corridor = getEscapeSweep(arrow, gridSize);
+  const corridor = getEscapeSweep(arrow, board);
 
   for (const other of arrows) {
     if (other.id === arrow.id || !other.active) continue;
@@ -46,8 +46,8 @@ export function getBlockingArrow(
   return null;
 }
 
-export function getAvailableMoves(arrows: Arrow[], gridSize: number): Arrow[] {
-  return arrows.filter((a) => a.active && canArrowMove(a, arrows, gridSize));
+export function getAvailableMoves(arrows: Arrow[], board: BoardSize): Arrow[] {
+  return arrows.filter((a) => a.active && canArrowMove(a, arrows, board));
 }
 
 export function buildOccupancyMap(arrows: Arrow[]): Map<string, string> {
