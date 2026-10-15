@@ -1,39 +1,38 @@
-import { cellKey } from '../game/geometry';
-import type { ArrowDef, Cell } from '../game/types';
-
-/** Fast occupancy grid: cell key → arrow id. */
+/** Square occupancy grid backed by a typed array: cell index → owning arrow index (-1 = empty). */
 export class OccupancyGrid {
-  private map = new Map<string, string>();
+  readonly size: number;
+  private owner: Int32Array;
+  private empty: number;
 
-  has(cell: Cell): boolean {
-    return this.map.has(cellKey(cell));
+  constructor(size: number) {
+    this.size = size;
+    this.owner = new Int32Array(size * size).fill(-1);
+    this.empty = size * size;
   }
 
-  get(cell: Cell): string | undefined {
-    return this.map.get(cellKey(cell));
+  index(x: number, y: number): number {
+    return y * this.size + x;
   }
 
-  occupy(arrow: ArrowDef): void {
-    for (const cell of arrow.path) {
-      this.map.set(cellKey(cell), arrow.id);
-    }
+  inBounds(x: number, y: number): boolean {
+    return x >= 0 && y >= 0 && x < this.size && y < this.size;
   }
 
-  wouldOverlap(path: Cell[]): boolean {
-    return path.some((c) => this.map.has(cellKey(c)));
+  isFree(x: number, y: number): boolean {
+    return this.owner[this.index(x, y)] === -1;
   }
 
-  clone(): OccupancyGrid {
-    const g = new OccupancyGrid();
-    for (const [k, v] of this.map) g.map.set(k, v);
-    return g;
+  ownerAt(x: number, y: number): number {
+    return this.owner[this.index(x, y)];
   }
 
-  get size(): number {
-    return this.map.size;
+  set(x: number, y: number, arrow: number): void {
+    const i = this.index(x, y);
+    if (this.owner[i] === -1) this.empty--;
+    this.owner[i] = arrow;
   }
 
-  keys(): IterableIterator<string> {
-    return this.map.keys();
+  get freeCount(): number {
+    return this.empty;
   }
 }

@@ -1,26 +1,27 @@
 import type { DifficultyBand } from '../game/types';
 
-export const GENERATOR_VERSION = '1.0.0';
+export const GENERATOR_VERSION = '2.0.0';
 
+/**
+ * Boards are always completely filled, so the arrow count is an outcome of
+ * grid size and arrow length rather than an input.
+ */
 export interface LevelGenConfig {
   level: number;
   name: string;
   difficulty: DifficultyBand;
   gridSize: number;
-  arrowCount: number;
   minBends: number;
   maxBends: number;
   minLength: number;
   maxLength: number;
   /** Desired initially movable arrows (soft target for candidate selection). */
   initialAvailable: number;
-  /** Soft target for longest forced chain / solution depth. */
+  /** Soft target for solution depth (rounds of removing every free arrow). */
   dependencyDepth: number;
   hintQuota: number;
-  /** Candidate attempts per level. */
+  /** Candidate boards generated per level; the best fit is kept. */
   candidateCount: number;
-  /** How hard we try to intentionally block already-placed arrows. */
-  blockBias: number;
   seed: number;
 }
 

@@ -1,4 +1,5 @@
-import type { Rng } from './rng';
+import { cellKey, getEscapeSweep } from '../game/geometry';
+import type { Level } from '../game/types';
 
 export interface DependencyEdge {
   blocker: string;
@@ -7,58 +8,59 @@ export interface DependencyEdge {
 
 export interface DependencyGraph {
   nodes: string[];
-  /** Topological order = intended solution order (first escapes first). */
-  solutionOrder: string[];
   edges: DependencyEdge[];
 }
 
-/**
- * Build a dependency DAG with branching that scales with difficulty.
- * Always includes a spanning chain so a solution order exists.
- */
-export function generateDependencyGraph(
-  rng: Rng,
-  arrowIds: string[],
-  options: { branchChance: number; maxParents: number },
-): DependencyGraph {
-  const nodes = arrowIds.slice();
+/** `blocker` occupies a cell in the escape ray of `blocked`, so it has to leave first. */
+export function buildDependencyGraph(level: Level): DependencyGraph {
+  const owner = new Map<string, string>();
+  for (const arrow of level.arrows) {
+    for (const cell of arrow.path) owner.set(cellKey(cell), arrow.id);
+  }
+
   const edges: DependencyEdge[] = [];
-
-  if (nodes.length === 0) {
-    return { nodes, solutionOrder: [], edges };
-  }
-
-  // Spanning chain: A → B → C → ... guarantees reverse construction works.
-  for (let i = 0; i < nodes.length - 1; i++) {
-    edges.push({ blocker: nodes[i], blocked: nodes[i + 1] });
-  }
-
-  // Extra cross edges for branching (earlier blocker → later blocked).
-  for (let i = 2; i < nodes.length; i++) {
-    if (!rng.chance(options.branchChance)) continue;
-    const parentCount = 1 + rng.int(Math.min(options.maxParents, i));
-    const candidates = rng.shuffle(nodes.slice(0, i));
-    for (let p = 0; p < parentCount; p++) {
-      const blocker = candidates[p];
-      if (!blocker) break;
-      if (edges.some((e) => e.blocker === blocker && e.blocked === nodes[i])) continue;
-      // Skip if already direct chain predecessor.
-      if (blocker === nodes[i - 1]) continue;
-      edges.push({ blocker, blocked: nodes[i] });
+  for (const arrow of level.arrows) {
+    const seen = new Set<string>();
+    for (const cell of getEscapeSweep(arrow, level.gridSize)) {
+      const blocker = owner.get(cellKey(cell));
+      if (!blocker || blocker === arrow.id || seen.has(blocker)) continue;
+      seen.add(blocker);
+      edges.push({ blocker, blocked: arrow.id });
     }
   }
 
-  return {
-    nodes,
-    solutionOrder: nodes.slice(),
-    edges,
-  };
+  return { nodes: level.arrows.map((a) => a.id), edges };
 }
 
-export function blockersOf(graph: DependencyGraph, blockedId: string): string[] {
-  return graph.edges.filter((e) => e.blocked === blockedId).map((e) => e.blocker);
-}
+/**
+ * Number of rounds needed when every free arrow is removed each round
+ * (the solution depth). Returns null when the graph has a cycle.
+ */
+export function dependencyLayers(graph: DependencyGraph): number | null {
+  const indegree = new Map<string, number>(graph.nodes.map((n) => [n, 0]));
+  const next = new Map<string, string[]>(graph.nodes.map((n) => [n, []]));
+  for (const { blocker, blocked } of graph.edges) {
+    indegree.set(blocked, (indegree.get(blocked) ?? 0) + 1);
+    next.get(blocker)?.push(blocked);
+  }
 
-export function blockedBy(graph: DependencyGraph, blockerId: string): string[] {
-  return graph.edges.filter((e) => e.blocker === blockerId).map((e) => e.blocked);
+  let frontier = graph.nodes.filter((n) => indegree.get(n) === 0);
+  let layers = 0;
+  let removed = 0;
+
+  while (frontier.length > 0) {
+    layers++;
+    removed += frontier.length;
+    const following: string[] = [];
+    for (const node of frontier) {
+      for (const blocked of next.get(node) ?? []) {
+        const left = (indegree.get(blocked) ?? 0) - 1;
+        indegree.set(blocked, left);
+        if (left === 0) following.push(blocked);
+      }
+    }
+    frontier = following;
+  }
+
+  return removed === graph.nodes.length ? layers : null;
 }
