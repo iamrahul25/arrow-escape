@@ -29,7 +29,15 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Arrow Escape uses your photos to build level shapes from images.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ]
     ]
   }
 }

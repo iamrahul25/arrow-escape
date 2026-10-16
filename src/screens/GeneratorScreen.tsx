@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Image,
   Pressable,
   StyleSheet,
   Switch,
@@ -14,12 +15,14 @@ import * as Clipboard from 'expo-clipboard';
 import { GeneratorBoard } from '../components/GeneratorBoard';
 import { Header } from '../components/Header';
 import { levelFileName, toLevelFile } from '../generator/export';
+import { decodeImage } from '../generator/imageMask';
 import { SHAPES } from '../generator/shapes';
 import { levelFromFile } from '../levels/format';
 import { useGameStore } from '../store/gameStore';
 import Slider from '@react-native-community/slider';
 import { activeMask, GRID_MAX, GRID_MIN, useGeneratorStore } from '../store/generatorStore';
 import { colors, spacing } from '../theme';
+import { pickImage } from '../utils/pickImage';
 import { saveJsonFile } from '../utils/saveJson';
 
 const WIDE_LAYOUT = 900;
@@ -50,6 +53,23 @@ function Stepper({
           <Text style={styles.stepText}>+</Text>
         </Pressable>
       </View>
+    </View>
+  );
+}
+
+function Toggle({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <View style={styles.row}>
+      <Text style={styles.label}>{label}</Text>
+      <Switch value={value} onValueChange={onChange} trackColor={{ true: colors.blue, false: colors.border }} />
     </View>
   );
 }
@@ -134,8 +154,14 @@ export function GeneratorScreen() {
   const [seedText, setSeedText] = useState(String(g.seed));
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [picking, setPicking] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
 
   useEffect(() => setSeedText(String(g.seed)), [g.seed]);
+  useEffect(() => {
+    setWidthText(String(g.width));
+    setHeightText(String(g.height));
+  }, [g.width, g.height]);
   useEffect(() => {
     if (!notice) return;
     const t = setTimeout(() => setNotice(null), 2500);
@@ -175,8 +201,22 @@ export function GeneratorScreen() {
 
   const onSlide = (width: number, height: number) => {
     g.setGridSize(width, height);
-    setWidthText(String(width));
-    setHeightText(String(height));
+    const s = useGeneratorStore.getState();
+    setWidthText(String(s.width));
+    setHeightText(String(s.height));
+  };
+
+  const onPickImage = async () => {
+    setImageError(null);
+    setPicking(true);
+    try {
+      const picked = await pickImage();
+      if (picked) g.setImage(decodeImage(picked.base64, picked.name, picked.uri));
+    } catch (err) {
+      setImageError((err as Error).message);
+    } finally {
+      setPicking(false);
+    }
   };
 
   const onGenerate = () => {
@@ -221,6 +261,13 @@ export function GeneratorScreen() {
 
   const panel = (
     <View style={styles.panel}>
+      <Button
+        label={busy ? 'Generating…' : 'Generate Level'}
+        variant="accent"
+        onPress={onGenerate}
+        disabled={busy}
+      />
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Grid Size</Text>
         <View style={styles.sizeRow}>
@@ -257,6 +304,9 @@ export function GeneratorScreen() {
           onChange={(v) => setHeightText(String(v))}
           onCommit={(v) => onSlide(g.width, v)}
         />
+        {g.customShape && g.shape === 'image' && g.imageSettings.keepAspect ? (
+          <Text style={styles.help}>Width and height follow the image's proportions.</Text>
+        ) : null}
       </View>
 
       <View style={styles.section}>
@@ -289,6 +339,75 @@ export function GeneratorScreen() {
               <Button label="Invert" onPress={g.invertMask} />
               <Button label="Clear All" variant="danger" onPress={() => g.fillMask(false)} />
             </View>
+
+            <View style={styles.divider} />
+            <View style={styles.row}>
+              <Text style={styles.subTitle}>From Image</Text>
+              {g.image ? (
+                <Pressable onPress={g.clearImage} hitSlop={6}>
+                  <Text style={styles.link}>Remove</Text>
+                </Pressable>
+              ) : null}
+            </View>
+            <Text style={styles.help}>
+              Use a flat black-and-white image: black becomes grid, white stays empty.
+            </Text>
+            {g.image ? (
+              <View style={styles.imageRow}>
+                <Image source={{ uri: g.image.uri }} style={styles.imagePreview} resizeMode="contain" />
+                <View style={styles.imageInfo}>
+                  <Text style={styles.label} numberOfLines={1}>
+                    {g.image.name}
+                  </Text>
+                  <Text style={styles.help}>
+                    {g.shape === 'image'
+                      ? 'Applied. Resizing the grid rebuilds the mask from the image.'
+                      : 'Not applied to the board.'}
+                  </Text>
+                </View>
+              </View>
+            ) : null}
+            <View style={styles.buttonRow}>
+              <Button
+                label={picking ? 'Loading…' : g.image ? 'Change Image' : 'Choose Image'}
+                onPress={onPickImage}
+                disabled={picking}
+              />
+              {g.image && g.shape !== 'image' ? (
+                <Button label="Use Image" variant="primary" onPress={g.applyImage} />
+              ) : null}
+            </View>
+            {imageError ? <Text style={styles.error}>{imageError}</Text> : null}
+            {g.image ? (
+              <>
+                <Toggle
+                  label="Invert"
+                  value={g.imageSettings.invert}
+                  onChange={(invert) => g.updateImage({ invert })}
+                />
+                <Toggle
+                  label="Keep proportions"
+                  value={g.imageSettings.keepAspect}
+                  onChange={(keepAspect) => g.updateImage({ keepAspect })}
+                />
+                <Toggle
+                  label="Trim blank border"
+                  value={g.imageSettings.trim}
+                  onChange={(trim) => g.updateImage({ trim })}
+                />
+                <Stepper
+                  label="Cell coverage"
+                  value={g.imageSettings.coverage}
+                  step={0.05}
+                  format={(v) => `${Math.round(v * 100)}%`}
+                  onChange={(coverage) => g.updateImage({ coverage })}
+                />
+                <Text style={styles.help}>
+                  A cell becomes grid when at least this much of it is{' '}
+                  {g.imageSettings.invert ? 'white' : 'black'}.
+                </Text>
+              </>
+            ) : null}
           </>
         ) : null}
       </View>
@@ -330,13 +449,6 @@ export function GeneratorScreen() {
             : 'Each Generate uses a new random seed.'}
         </Text>
       </View>
-
-      <Button
-        label={busy ? 'Generating…' : 'Generate Level'}
-        variant="accent"
-        onPress={onGenerate}
-        disabled={busy}
-      />
 
       <View style={styles.section}>
         <Stat label="Total arrows" value={result ? String(result.level.stats.arrowCount) : '—'} />
@@ -569,6 +681,38 @@ const styles = StyleSheet.create({
   },
   chipTextActive: {
     color: colors.white,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: spacing.xs,
+  },
+  subTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: colors.navy,
+  },
+  link: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.blocked,
+  },
+  imageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  imagePreview: {
+    width: 64,
+    height: 64,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+  },
+  imageInfo: {
+    flex: 1,
+    gap: 2,
   },
   buttonRow: {
     flexDirection: 'row',

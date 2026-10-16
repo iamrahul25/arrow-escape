@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { generateLevel, type GeneratedLevel } from '../generator/generator';
+import { imageAspect, imageMask, type ImageMaskOptions, type ImageSource } from '../generator/imageMask';
 import { randomSeed } from '../generator/rng';
 import { fullMask, shapeMask, type ShapeId } from '../generator/shapes';
 import { getSuite } from '../levels';
@@ -11,6 +12,8 @@ export const GRID_MIN = 10;
 export const GRID_MAX = 100;
 export const LENGTH_MIN = 2;
 export const LENGTH_MAX = 20;
+export const COVERAGE_MIN = 0.05;
+export const COVERAGE_MAX = 0.95;
 
 export interface GeneratorSettings {
   minLength: number;
@@ -30,13 +33,23 @@ export interface GeneratorResult {
   turnChance: number;
 }
 
+export interface ImageSettings extends ImageMaskOptions {
+  /** Grid height follows grid width (and vice versa) to match the image's proportions. */
+  keepAspect: boolean;
+}
+
 interface GeneratorStore extends GeneratorSettings {
   width: number;
   height: number;
   customShape: boolean;
-  /** Last applied preset, or 'custom' once cells were painted by hand. */
-  shape: ShapeId | 'custom';
+  /**
+   * Last applied preset, 'image' while the mask follows the loaded image (hand edits allowed,
+   * rebuilt on resize), or 'custom' once the mask is free-form.
+   */
+  shape: ShapeId | 'image' | 'custom';
   customMask: boolean[];
+  image: ImageSource | null;
+  imageSettings: ImageSettings;
   seed: number;
   lockSeed: boolean;
   result: GeneratorResult | null;
@@ -45,6 +58,10 @@ interface GeneratorStore extends GeneratorSettings {
   setGridSize: (width: number, height: number) => void;
   setCustomShape: (on: boolean) => void;
   applyShape: (shape: ShapeId) => void;
+  setImage: (image: ImageSource) => void;
+  applyImage: () => void;
+  updateImage: (patch: Partial<ImageSettings>) => void;
+  clearImage: () => void;
   paintCell: (index: number, value: boolean) => void;
   fillMask: (value: boolean) => void;
   invertMask: () => void;
@@ -55,6 +72,7 @@ interface GeneratorStore extends GeneratorSettings {
 }
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+const clampGrid = (v: number) => clamp(Math.round(v) || GRID_MIN, GRID_MIN, GRID_MAX);
 
 export function activeMask(s: Pick<GeneratorStore, 'customShape' | 'customMask' | 'width' | 'height'>) {
   return s.customShape ? s.customMask : fullMask(s.width, s.height);
@@ -70,12 +88,38 @@ function resizeMask(mask: boolean[], fromW: number, fromH: number, toW: number, 
   return next;
 }
 
+/** Grid size closest to `aspect` (width ÷ height), driven by one side and kept in bounds. */
+function fitAspect(size: number, aspect: number, drivenBy: 'width' | 'height') {
+  const ratio = drivenBy === 'width' ? 1 / aspect : aspect;
+  const lo = Math.max(GRID_MIN, Math.ceil(GRID_MIN / ratio));
+  const hi = Math.min(GRID_MAX, Math.floor(GRID_MAX / ratio));
+  const driven = clampGrid(lo <= hi ? clamp(size, lo, hi) : size);
+  const other = clampGrid(driven * ratio);
+  return drivenBy === 'width' ? { width: driven, height: other } : { width: other, height: driven };
+}
+
+/** Size and mask for the loaded image, keeping the current width when proportions are locked. */
+function imageLayout(image: ImageSource, settings: ImageSettings, width: number, height: number) {
+  const size = settings.keepAspect
+    ? fitAspect(width, imageAspect(image, settings), 'width')
+    : { width, height };
+  return {
+    ...size,
+    shape: 'image' as const,
+    customMask: imageMask(image, size.width, size.height, settings),
+    result: null,
+    error: null,
+  };
+}
+
 export const useGeneratorStore = create<GeneratorStore>((set, get) => ({
   width: 10,
   height: 10,
   customShape: false,
   shape: 'custom',
   customMask: fullMask(10, 10),
+  image: null,
+  imageSettings: { invert: false, coverage: 0.5, trim: true, keepAspect: true },
   seed: randomSeed(),
   lockSeed: false,
   minLength: 3,
@@ -88,11 +132,26 @@ export const useGeneratorStore = create<GeneratorStore>((set, get) => ({
   error: null,
 
   setGridSize: (w, h) => {
-    const width = clamp(Math.round(w) || GRID_MIN, GRID_MIN, GRID_MAX);
-    const height = clamp(Math.round(h) || GRID_MIN, GRID_MIN, GRID_MAX);
     const s = get();
+    let width = clampGrid(w);
+    let height = clampGrid(h);
+    if (s.shape === 'image' && s.image) {
+      if (s.imageSettings.keepAspect) {
+        const aspect = imageAspect(s.image, s.imageSettings);
+        const heightOnly = width === s.width && height !== s.height;
+        ({ width, height } = fitAspect(heightOnly ? height : width, aspect, heightOnly ? 'height' : 'width'));
+      }
+      set({
+        width,
+        height,
+        customMask: imageMask(s.image, width, height, s.imageSettings),
+        result: null,
+        error: null,
+      });
+      return;
+    }
     const customMask =
-      s.shape === 'custom'
+      s.shape === 'custom' || s.shape === 'image'
         ? resizeMask(s.customMask, s.width, s.height, width, height)
         : shapeMask(s.shape, width, height);
     set({ width, height, customMask, result: null, error: null });
@@ -105,12 +164,47 @@ export const useGeneratorStore = create<GeneratorStore>((set, get) => ({
     set({ shape, customMask: shapeMask(shape, width, height), result: null, error: null });
   },
 
+  setImage: (image) => {
+    const s = get();
+    set({ image, ...imageLayout(image, s.imageSettings, s.width, s.height) });
+  },
+
+  applyImage: () => {
+    const s = get();
+    if (s.image) set(imageLayout(s.image, s.imageSettings, s.width, s.height));
+  },
+
+  updateImage: (patch) => {
+    const s = get();
+    const imageSettings = {
+      ...s.imageSettings,
+      ...patch,
+      coverage: clamp(
+        Math.round((patch.coverage ?? s.imageSettings.coverage) * 100) / 100,
+        COVERAGE_MIN,
+        COVERAGE_MAX,
+      ),
+    };
+    set({
+      imageSettings,
+      ...(s.image ? imageLayout(s.image, imageSettings, s.width, s.height) : {}),
+    });
+  },
+
+  clearImage: () =>
+    set((s) => ({ image: null, shape: s.shape === 'image' ? 'custom' : s.shape })),
+
   paintCell: (index, value) => {
-    const { customMask } = get();
+    const { customMask, shape } = get();
     if (customMask[index] === value) return;
     const next = [...customMask];
     next[index] = value;
-    set({ customMask: next, shape: 'custom', result: null, error: null });
+    set({
+      customMask: next,
+      shape: shape === 'image' ? 'image' : 'custom',
+      result: null,
+      error: null,
+    });
   },
 
   fillMask: (value) => {
@@ -151,7 +245,11 @@ export const useGeneratorStore = create<GeneratorStore>((set, get) => ({
   generate: () => {
     const s = get();
     const seed = s.lockSeed ? s.seed : randomSeed();
-    const shape = s.customShape ? s.shape : 'rectangle';
+    const shape = !s.customShape
+      ? 'rectangle'
+      : s.shape === 'image' && s.image
+        ? `image:${s.image.name}`
+        : s.shape;
     try {
       const level = generateLevel({
         width: s.width,
