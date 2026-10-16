@@ -30,6 +30,7 @@ export function GameScreen() {
   const autoMove = useGameStore((s) => s.autoMove);
   const autoPending = useGameStore((s) => s.autoPending);
   const developerMode = useGameStore((s) => s.progress.settings.developerMode);
+  const showGridDots = useGameStore((s) => s.progress.settings.showGridDots);
   const restartLevel = useGameStore((s) => s.restartLevel);
   const setScreen = useGameStore((s) => s.setScreen);
   const clearTransient = useGameStore((s) => s.clearTransient);
@@ -53,7 +54,7 @@ export function GameScreen() {
 
   const cellSize = Math.min(
     (width - config.board.horizontalInset) / level.width,
-    (height * config.board.maxHeightFraction) / level.height,
+    (height * config.board.maxHeightFraction - config.zoom.barHeight) / level.height,
   );
   const remaining = snapshot.arrows.filter((a) => a.active).length;
   const hasNext = playtest || getNextLevelId(level.suiteId, level.id) !== null;
@@ -85,6 +86,7 @@ export function GameScreen() {
           arrows={snapshot.arrows}
           board={level}
           mask={level.mask}
+          showGridDots={showGridDots}
           cellSize={cellSize}
           hintArrowId={snapshot.hintArrowId}
           shakingArrowId={shakingArrowId}

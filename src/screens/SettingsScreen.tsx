@@ -51,6 +51,17 @@ export function SettingsScreen() {
         </View>
         <View style={styles.row}>
           <View style={styles.labelWrap}>
+            <Text style={styles.label}>⠿ Grid Dots</Text>
+            <Text style={styles.caption}>Show a dot in every empty board cell</Text>
+          </View>
+          <Switch
+            value={progress.settings.showGridDots}
+            onValueChange={() => void toggleSetting('showGridDots')}
+            trackColor={{ true: colors.blue, false: colors.border }}
+          />
+        </View>
+        <View style={styles.row}>
+          <View style={styles.labelWrap}>
             <Text style={styles.label}>🛠 Developer Mode</Text>
             <Text style={styles.caption}>Unlimited hints and Auto play</Text>
           </View>

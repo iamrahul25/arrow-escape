@@ -55,13 +55,23 @@ interface GameStore {
   clearTransient: () => void;
   tick: () => void;
   completeAndAdvance: () => void;
-  markLevelComplete: (suiteId: number, levelId: number, moves: number) => Promise<void>;
+  markLevelComplete: (
+    suiteId: number,
+    levelId: number,
+    moves: number,
+    stars: number,
+  ) => Promise<void>;
   toggleSetting: (key: keyof ProgressData['settings']) => Promise<void>;
   resetProgress: () => Promise<void>;
   isLevelUnlocked: (suiteId: number, levelId: number) => boolean;
 }
 
 const engine = new GameEngine();
+
+/** 3 stars for a flawless clear, scaled down by hearts lost. */
+function starsForLives(lives: number): number {
+  return Math.max(1, Math.ceil((lives / config.lives) * 3));
+}
 
 export const useGameStore = create<GameStore>((set, get) => ({
   screen: 'home',
@@ -158,7 +168,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
         void hapticWin(progress.settings.haptics);
         const { playtest, level } = get();
         if (!playtest && level) {
-          void get().markLevelComplete(level.suiteId, level.id, next.moves);
+          void get().markLevelComplete(
+            level.suiteId,
+            level.id,
+            next.moves,
+            starsForLives(next.lives),
+          );
         }
       }
     } else if (result.blocked) {
@@ -242,7 +257,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
   },
 
-  markLevelComplete: async (suiteId, levelId, moves) => {
+  markLevelComplete: async (suiteId, levelId, moves, stars) => {
     const { progress } = get();
     const suite = getSuiteProgress(progress, suiteId);
     const completedLevels = suite.completedLevels.includes(levelId)
@@ -256,6 +271,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
         prevBest === undefined ? moves : Math.min(prevBest, moves),
     };
 
+    const bestStars = {
+      ...suite.bestStars,
+      [String(levelId)]: Math.max(suite.bestStars?.[String(levelId)] ?? 0, stars),
+    };
+
     const highestLevel = Math.max(
       suite.highestLevel,
       Math.min(levelId + 1, getSuite(suiteId)?.levels.length ?? levelId),
@@ -265,7 +285,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       ...progress,
       suites: {
         ...progress.suites,
-        [String(suiteId)]: { completedLevels, bestScores, highestLevel },
+        [String(suiteId)]: { completedLevels, bestScores, bestStars, highestLevel },
       },
     };
 

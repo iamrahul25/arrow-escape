@@ -11,6 +11,7 @@ export const colors = {
   hint: '#FFB300',
   blocked: '#FF5252',
   cellOn: '#E3ECF7',
+  boardEdge: '#A9D3F5',
 };
 
 export const spacing = {

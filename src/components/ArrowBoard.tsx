@@ -1,13 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   Canvas,
   Circle,
   Group,
   Path,
+  RoundedRect,
   Skia,
 } from '@shopify/react-native-skia';
 import {
+  useAnimatedReaction,
   useSharedValue,
   withSequence,
   withTiming,
@@ -34,6 +36,7 @@ interface ArrowBoardProps {
   board: BoardSize;
   /** Row-major playable cells; null = whole rectangle. */
   mask: boolean[] | null;
+  showGridDots: boolean;
   cellSize: number;
   hintArrowId: string | null;
   shakingArrowId: string | null;
@@ -41,6 +44,21 @@ interface ArrowBoardProps {
   onTapArrow: (id: string) => void;
   onEscapeDone: () => void;
   onShakeDone: () => void;
+}
+
+const MAX_ZOOM = config.zoom.max;
+const BOARD_RADIUS = 20;
+
+function clampZoom(s: number): number {
+  'worklet';
+  return Math.min(MAX_ZOOM, Math.max(1, s));
+}
+
+/** Keeps the zoomed board covering the viewport (no empty space at the edges). */
+function clampOffset(t: number, scale: number, size: number): number {
+  'worklet';
+  const max = (size * (scale - 1)) / 2;
+  return Math.min(max, Math.max(-max, t));
 }
 
 function dist(a: Pt, b: Pt): number {
@@ -327,6 +345,7 @@ export function ArrowBoard({
   arrows,
   board,
   mask,
+  showGridDots,
   cellSize,
   hintArrowId,
   shakingArrowId,
@@ -362,13 +381,137 @@ export function ArrowBoard({
     [cellSize, width, height, visibleArrows, onTapArrow, escapingArrowId],
   );
 
-  const tapGesture = useMemo(
-    () =>
-      Gesture.Tap().onEnd((e) => {
-        runOnJS(handleTap)(e.x, e.y);
-      }),
-    [handleTap],
+  const centerX = pixelWidth / 2;
+  const centerY = pixelHeight / 2;
+  const scale = useSharedValue(1);
+  const offsetX = useSharedValue(0);
+  const offsetY = useSharedValue(0);
+  const pinching = useSharedValue(false);
+  const pinchAnchor = useSharedValue({ scale: 1, x: 0, y: 0 });
+  const blockTapsUntil = useSharedValue(0);
+  const [zoomPercent, setZoomPercent] = useState(100);
+
+  useEffect(() => {
+    scale.value = 1;
+    offsetX.value = 0;
+    offsetY.value = 0;
+  }, [board, cellSize, scale, offsetX, offsetY]);
+
+  useAnimatedReaction(
+    () => Math.round(scale.value * 100),
+    (pct, prev) => {
+      if (pct !== prev) runOnJS(setZoomPercent)(pct);
+    },
   );
+
+  const viewTransform = useDerivedValue(() => [
+    { translateX: centerX + offsetX.value },
+    { translateY: centerY + offsetY.value },
+    { scale: scale.value },
+    { translateX: -centerX },
+    { translateY: -centerY },
+  ]);
+
+  // Board outline in board coordinates, sized so it stays a constant width on screen.
+  const edgeStroke = useDerivedValue(() => config.zoom.edgeWidth / scale.value);
+  const edgeInset = useDerivedValue(() => edgeStroke.value / 2);
+  const edgeWidth = useDerivedValue(() => pixelWidth - edgeStroke.value);
+  const edgeHeight = useDerivedValue(() => pixelHeight - edgeStroke.value);
+  const edgeRadius = useDerivedValue(() => BOARD_RADIUS / scale.value);
+  const edgeOpacity = useDerivedValue(() =>
+    Math.min(1, Math.max(0, (scale.value - 1) / config.zoom.edgeFadeRange)),
+  );
+
+  const boardGesture = useMemo(() => {
+    const pinch = Gesture.Pinch()
+      .onStart((e) => {
+        pinching.value = true;
+        const s = scale.value;
+        // Board point under the fingers, relative to the board center.
+        pinchAnchor.value = {
+          scale: s,
+          x: (e.focalX - centerX - offsetX.value) / s,
+          y: (e.focalY - centerY - offsetY.value) / s,
+        };
+      })
+      .onUpdate((e) => {
+        const anchor = pinchAnchor.value;
+        const s = clampZoom(anchor.scale * e.scale);
+        scale.value = s;
+        offsetX.value = clampOffset(e.focalX - centerX - anchor.x * s, s, pixelWidth);
+        offsetY.value = clampOffset(e.focalY - centerY - anchor.y * s, s, pixelHeight);
+      })
+      .onEnd(() => {
+        blockTapsUntil.value = Date.now() + config.zoom.tapCooldownMs;
+      })
+      .onFinalize(() => {
+        pinching.value = false;
+      });
+
+    const pan = Gesture.Pan()
+      .minDistance(config.zoom.panMinDistance)
+      .averageTouches(true)
+      .onChange((e) => {
+        if (pinching.value) return;
+        const s = scale.value;
+        offsetX.value = clampOffset(offsetX.value + e.changeX, s, pixelWidth);
+        offsetY.value = clampOffset(offsetY.value + e.changeY, s, pixelHeight);
+      })
+      .onEnd(() => {
+        blockTapsUntil.value = Date.now() + config.zoom.tapCooldownMs;
+      });
+
+    const tap = Gesture.Tap()
+      .maxDistance(config.zoom.tapMaxDistance)
+      .onTouchesDown((e, manager) => {
+        if (e.numberOfTouches > 1) manager.fail();
+      })
+      .onEnd((e, success) => {
+        if (!success || pinching.value || Date.now() < blockTapsUntil.value) return;
+        const s = scale.value;
+        runOnJS(handleTap)(
+          (e.x - centerX - offsetX.value) / s + centerX,
+          (e.y - centerY - offsetY.value) / s + centerY,
+        );
+      });
+
+    return Gesture.Race(Gesture.Simultaneous(pinch, pan), tap);
+  }, [
+    handleTap,
+    centerX,
+    centerY,
+    pixelWidth,
+    pixelHeight,
+    scale,
+    offsetX,
+    offsetY,
+    pinching,
+    pinchAnchor,
+    blockTapsUntil,
+  ]);
+
+  const zoomBy = useCallback(
+    (factor: number) => {
+      const s0 = scale.value;
+      const s1 = clampZoom(s0 * factor);
+      const k = s1 / s0;
+      const timing = { duration: config.zoom.buttonAnimMs };
+      scale.value = withTiming(s1, timing);
+      offsetX.value = withTiming(clampOffset(offsetX.value * k, s1, pixelWidth), timing);
+      offsetY.value = withTiming(clampOffset(offsetY.value * k, s1, pixelHeight), timing);
+    },
+    [scale, offsetX, offsetY, pixelWidth, pixelHeight],
+  );
+
+  const resetZoom = useCallback(() => {
+    const timing = { duration: config.zoom.buttonAnimMs };
+    scale.value = withTiming(1, timing);
+    offsetX.value = withTiming(0, timing);
+    offsetY.value = withTiming(0, timing);
+  }, [scale, offsetX, offsetY]);
+
+  const canZoomOut = zoomPercent > 100;
+  const canZoomIn = zoomPercent < Math.round(MAX_ZOOM * 100);
 
   const tipCells = useMemo(() => {
     const tips = new Set<string>();
@@ -381,6 +524,7 @@ export function ArrowBoard({
 
   const gridDots = useMemo(() => {
     const dots: { x: number; y: number }[] = [];
+    if (!showGridDots) return dots;
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         if (mask && !mask[y * width + x]) continue;
@@ -392,48 +536,137 @@ export function ArrowBoard({
       }
     }
     return dots;
-  }, [width, height, mask, cellSize, tipCells]);
+  }, [showGridDots, width, height, mask, cellSize, tipCells]);
 
   const dotColor = `rgba(23, 35, 63, ${config.board.dotOpacity})`;
 
   return (
-    <View style={[styles.board, { width: pixelWidth, height: pixelHeight }]}>
-      <GestureDetector gesture={tapGesture}>
-        <View>
-          <Canvas style={{ width: pixelWidth, height: pixelHeight }}>
-            {gridDots.map((dot, idx) => (
-              <Circle
-                key={idx}
-                cx={dot.x}
-                cy={dot.y}
-                r={config.board.dotSize}
-                color={dotColor}
-              />
-            ))}
-            {visibleArrows.map((arrow) => (
-              <AnimatedArrow
-                key={arrow.id}
-                arrow={arrow}
-                cellSize={cellSize}
-                board={board}
-                isHint={hintArrowId === arrow.id}
-                isShaking={shakingArrowId === arrow.id}
-                isEscaping={escapingArrowId === arrow.id}
-                onEscapeDone={onEscapeDone}
-                onShakeDone={onShakeDone}
-              />
-            ))}
-          </Canvas>
-        </View>
-      </GestureDetector>
+    <View style={styles.container}>
+      <View style={[styles.board, { width: pixelWidth, height: pixelHeight }]}>
+        <GestureDetector gesture={boardGesture}>
+          <View>
+            <Canvas style={{ width: pixelWidth, height: pixelHeight }}>
+              <Group transform={viewTransform}>
+                <RoundedRect
+                  x={edgeInset}
+                  y={edgeInset}
+                  width={edgeWidth}
+                  height={edgeHeight}
+                  r={edgeRadius}
+                  color={colors.boardEdge}
+                  style="stroke"
+                  strokeWidth={edgeStroke}
+                  opacity={edgeOpacity}
+                />
+                {gridDots.map((dot, idx) => (
+                  <Circle
+                    key={idx}
+                    cx={dot.x}
+                    cy={dot.y}
+                    r={config.board.dotSize}
+                    color={dotColor}
+                  />
+                ))}
+                {visibleArrows.map((arrow) => (
+                  <AnimatedArrow
+                    key={arrow.id}
+                    arrow={arrow}
+                    cellSize={cellSize}
+                    board={board}
+                    isHint={hintArrowId === arrow.id}
+                    isShaking={shakingArrowId === arrow.id}
+                    isEscaping={escapingArrowId === arrow.id}
+                    onEscapeDone={onEscapeDone}
+                    onShakeDone={onShakeDone}
+                  />
+                ))}
+              </Group>
+            </Canvas>
+          </View>
+        </GestureDetector>
+      </View>
+
+      <View style={styles.zoomBar}>
+        <Pressable
+          style={[styles.zoomBtn, !canZoomOut && styles.zoomDisabled]}
+          onPress={() => zoomBy(1 / config.zoom.buttonStep)}
+          disabled={!canZoomOut}
+          hitSlop={6}
+          accessibilityLabel="Zoom out"
+        >
+          <Text style={styles.zoomBtnText}>−</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.zoomLabelBtn, !canZoomOut && styles.zoomDisabled]}
+          onPress={resetZoom}
+          disabled={!canZoomOut}
+          hitSlop={6}
+          accessibilityLabel="Reset zoom"
+        >
+          <Text style={styles.zoomLabel}>{zoomPercent}%</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.zoomBtn, !canZoomIn && styles.zoomDisabled]}
+          onPress={() => zoomBy(config.zoom.buttonStep)}
+          disabled={!canZoomIn}
+          hitSlop={6}
+          accessibilityLabel="Zoom in"
+        >
+          <Text style={styles.zoomBtnText}>+</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+  },
   board: {
     backgroundColor: 'transparent',
-    borderRadius: 20,
+    borderRadius: BOARD_RADIUS,
     overflow: 'hidden',
+  },
+  zoomBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: config.zoom.barHeight,
+  },
+  zoomBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.panel,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  zoomLabelBtn: {
+    minWidth: 64,
+    height: 40,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.panel,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  zoomDisabled: {
+    opacity: 0.4,
+  },
+  zoomBtnText: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.navy,
+  },
+  zoomLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.navy,
   },
 });

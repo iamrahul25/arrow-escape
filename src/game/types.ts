@@ -90,6 +90,8 @@ export interface SuiteProgress {
   highestLevel: number;
   completedLevels: number[];
   bestScores: Record<string, number>;
+  /** Best star rating (1–3) per level id; missing on saves from before stars existed. */
+  bestStars?: Record<string, number>;
 }
 
 export interface ProgressData {
@@ -102,5 +104,7 @@ export interface ProgressData {
     haptics: boolean;
     /** Unlimited hints and the Auto button in game. */
     developerMode: boolean;
+    /** Faint dot at the center of every board cell. */
+    showGridDots: boolean;
   };
 }

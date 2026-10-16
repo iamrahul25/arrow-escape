@@ -59,6 +59,27 @@ export const config = {
     /** Dot opacity (0–1). */
     dotOpacity: 0.18,
   },
+
+  zoom: {
+    /** Maximum board zoom (1 = fit to screen). */
+    max: 3,
+    /** Multiplier applied by the + / − buttons. */
+    buttonStep: 1.5,
+    /** Duration of button zoom animations (ms). */
+    buttonAnimMs: 180,
+    /** One-finger drag distance (px) before it counts as panning instead of a tap. */
+    panMinDistance: 10,
+    /** A tap that moves further than this (px) is not an arrow tap. */
+    tapMaxDistance: 10,
+    /** Ignore arrow taps for this long after a pinch or pan ends (ms). */
+    tapCooldownMs: 250,
+    /** On-screen width of the board outline shown while zoomed in (px). */
+    edgeWidth: 3,
+    /** Zoom amount over 1x at which the board outline is fully visible. */
+    edgeFadeRange: 0.15,
+    /** Vertical space reserved under the board for the zoom buttons (px). */
+    barHeight: 52,
+  },
 };
 
 export type AppConfig = typeof config;

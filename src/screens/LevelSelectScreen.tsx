@@ -15,7 +15,7 @@ export function LevelSelectScreen() {
   const isLevelUnlocked = useGameStore((s) => s.isLevelUnlocked);
 
   const suite = getSuite(suiteId);
-  const { completedLevels } = getSuiteProgress(progress, suiteId);
+  const { completedLevels, bestStars } = getSuiteProgress(progress, suiteId);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -26,6 +26,7 @@ export function LevelSelectScreen() {
           suite.levels.map((level) => {
             const unlocked = isLevelUnlocked(suiteId, level.id);
             const completed = completedLevels.includes(level.id);
+            const stars = completed ? (bestStars?.[String(level.id)] ?? 1) : 0;
 
             return (
               <Pressable
@@ -40,6 +41,15 @@ export function LevelSelectScreen() {
                 <Text style={[styles.size, completed && styles.textDone]}>
                   {level.width}×{level.height}
                 </Text>
+                {completed ? (
+                  <View style={styles.stars}>
+                    {[1, 2, 3].map((n) => (
+                      <Text key={n} style={[styles.star, n > stars && styles.starEmpty]}>
+                        ★
+                      </Text>
+                    ))}
+                  </View>
+                ) : null}
               </Pressable>
             );
           })
@@ -66,9 +76,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   tile: {
-    width: 64,
-    height: 64,
-    borderRadius: 14,
+    width: 84,
+    height: 96,
+    borderRadius: 16,
     backgroundColor: colors.panel,
     borderWidth: 1,
     borderColor: colors.border,
@@ -83,15 +93,28 @@ const styles = StyleSheet.create({
     opacity: 0.45,
   },
   levelNum: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '800',
     color: colors.navy,
   },
   size: {
     marginTop: 2,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
     color: colors.muted,
+  },
+  stars: {
+    flexDirection: 'row',
+    marginTop: spacing.xs,
+    gap: 2,
+  },
+  star: {
+    fontSize: 15,
+    color: colors.hint,
+  },
+  starEmpty: {
+    color: colors.white,
+    opacity: 0.35,
   },
   textDone: {
     color: colors.white,

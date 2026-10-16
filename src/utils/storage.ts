@@ -10,6 +10,7 @@ export const DEFAULT_PROGRESS: ProgressData = {
     sound: true,
     haptics: true,
     developerMode: false,
+    showGridDots: false,
   },
 };
 
