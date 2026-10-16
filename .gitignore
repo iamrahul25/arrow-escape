@@ -36,6 +36,10 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# python
+*.pyc
+__pycache__/
+
 # generated native folders
 /ios
 /android

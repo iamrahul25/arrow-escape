@@ -14,12 +14,12 @@ import shutil
 import subprocess
 import sys
 import time
-from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 ANDROID_DIR = ROOT / "android"
 RELEASE_DIR = ROOT / "release"
+RELEASE_APK = RELEASE_DIR / "app-release.apk"
 APK_OUTPUT = ANDROID_DIR / "app" / "build" / "outputs" / "apk" / "release" / "app-release.apk"
 IS_WINDOWS = os.name == "nt"
 EMULATOR_BOOT_TIMEOUT_S = 180
@@ -129,19 +129,18 @@ def ensure_emulator_running() -> None:
     raise CommandError(f"Emulator did not finish booting within {EMULATOR_BOOT_TIMEOUT_S}s.")
 
 
-def app_version() -> str:
+def latest_release_apk() -> Path:
+    if not RELEASE_APK.exists():
+        raise CommandError(f"No {RELEASE_APK.name} in release/. Build one first (option 3).")
+    return RELEASE_APK
+
+
+def android_package() -> str:
     try:
         config = json.loads((ROOT / "app.json").read_text(encoding="utf-8"))
-        return config["expo"]["version"]
-    except (OSError, KeyError, json.JSONDecodeError):
-        return "0.0.0"
-
-
-def latest_release_apk() -> Path:
-    apks = sorted(RELEASE_DIR.glob("*.apk"), key=lambda p: p.stat().st_mtime)
-    if not apks:
-        raise CommandError("No APK in release/. Build one first (option 3).")
-    return apks[-1]
+        return config["expo"]["android"]["package"]
+    except (OSError, KeyError, json.JSONDecodeError) as err:
+        raise CommandError(f"Could not read expo.android.package from app.json ({err}).")
 
 
 # ---------------------------------------------------------------- actions
@@ -170,8 +169,7 @@ def build_release_apk() -> None:
         raise CommandError(f"Build finished but APK not found at {APK_OUTPUT}")
 
     RELEASE_DIR.mkdir(exist_ok=True)
-    stamp = datetime.now().strftime("%Y%m%d-%H%M")
-    target = RELEASE_DIR / f"arrow-escape-v{app_version()}-{stamp}.apk"
+    target = RELEASE_APK
     shutil.copy2(APK_OUTPUT, target)
     size_mb = target.stat().st_size / (1024 * 1024)
     info(f"APK copied to {target.relative_to(ROOT)} ({size_mb:.1f} MB)")
@@ -187,6 +185,16 @@ def install_latest_apk() -> None:
         raise CommandError("APK install failed.")
 
 
+def run_apk_in_emulator() -> None:
+    install_latest_apk()
+    package = android_package()
+    info(f"Launching {package}...")
+    output = adb("shell", "monkey", "-p", package, "-c", "android.intent.category.LAUNCHER", "1")
+    if "Events injected: 1" not in output:
+        print(output)
+        raise CommandError(f"Could not launch {package}.")
+
+
 def start_clear_cache() -> None:
     info("Starting Expo dev server with cleared Metro cache (Ctrl+C to stop)...")
     run(["npx", "expo", "start", "--clear"], check=False)
@@ -198,6 +206,7 @@ ACTIONS = {
     "3": ("Build release .apk and copy to release/", build_release_apk),
     "4": ("Install latest release .apk on emulator/device", install_latest_apk),
     "5": ("Start the project with cleared cache", start_clear_cache),
+    "6": ("Install and run release .apk in emulator", run_apk_in_emulator),
 }
 
 
