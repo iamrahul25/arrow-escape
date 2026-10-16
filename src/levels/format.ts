@@ -59,7 +59,7 @@ export function maskToRows(mask: boolean[], width: number, height: number): stri
   return rows;
 }
 
-export function levelFromFile(file: LevelFile): Level {
+export function levelFromFile(file: LevelFile, suiteId = 0): Level {
   const { width, height } = file.board;
   const mask = file.board.mask ? maskFromRows(file.board.mask, width, height) : null;
   const arrows = file.arrows.map(arrowDefFromFile);
@@ -74,6 +74,7 @@ export function levelFromFile(file: LevelFile): Level {
 
   return {
     id: file.level,
+    suiteId,
     name: file.name,
     width,
     height,

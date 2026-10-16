@@ -1,0 +1,157 @@
+{
+  "suite": 1,
+  "version": 1,
+  "level": 8,
+  "name": "Square 5×5",
+  "board": {
+    "width": 5,
+    "height": 5
+  },
+  "hintQuota": 3,
+  "generation": {
+    "seed": 1008013,
+    "generatorVersion": "2.0.0",
+    "shape": "rectangle",
+    "minLength": 3,
+    "maxLength": 6,
+    "turnChance": 0.35
+  },
+  "stats": {
+    "arrowCount": 6,
+    "bendCount": 6,
+    "coverage": 1,
+    "emptyCells": 0,
+    "initialAvailable": 1,
+    "solveDepth": 5
+  },
+  "solution": [
+    "A06",
+    "A03",
+    "A04",
+    "A01",
+    "A02",
+    "A05"
+  ],
+  "arrows": [
+    {
+      "id": "A01",
+      "start": {
+        "x": 4,
+        "y": 0
+      },
+      "segments": [
+        {
+          "direction": "down",
+          "length": 1
+        },
+        {
+          "direction": "left",
+          "length": 3
+        },
+        {
+          "direction": "down",
+          "length": 1
+        }
+      ],
+      "head": {
+        "direction": "down"
+      }
+    },
+    {
+      "id": "A02",
+      "start": {
+        "x": 0,
+        "y": 1
+      },
+      "segments": [
+        {
+          "direction": "up",
+          "length": 1
+        },
+        {
+          "direction": "right",
+          "length": 3
+        }
+      ],
+      "head": {
+        "direction": "right"
+      }
+    },
+    {
+      "id": "A03",
+      "start": {
+        "x": 0,
+        "y": 2
+      },
+      "segments": [
+        {
+          "direction": "down",
+          "length": 2
+        },
+        {
+          "direction": "right",
+          "length": 2
+        }
+      ],
+      "head": {
+        "direction": "right"
+      }
+    },
+    {
+      "id": "A04",
+      "start": {
+        "x": 2,
+        "y": 2
+      },
+      "segments": [
+        {
+          "direction": "right",
+          "length": 1
+        },
+        {
+          "direction": "down",
+          "length": 1
+        },
+        {
+          "direction": "left",
+          "length": 2
+        }
+      ],
+      "head": {
+        "direction": "left"
+      }
+    },
+    {
+      "id": "A05",
+      "start": {
+        "x": 4,
+        "y": 3
+      },
+      "segments": [
+        {
+          "direction": "up",
+          "length": 1
+        }
+      ],
+      "head": {
+        "direction": "up"
+      }
+    },
+    {
+      "id": "A06",
+      "start": {
+        "x": 3,
+        "y": 4
+      },
+      "segments": [
+        {
+          "direction": "right",
+          "length": 1
+        }
+      ],
+      "head": {
+        "direction": "right"
+      }
+    }
+  ]
+}

@@ -32,7 +32,10 @@ export interface BoardSize {
 }
 
 export interface Level extends BoardSize {
+  /** Level number within its suite. */
   id: number;
+  /** 0 for levels that don't belong to a suite (generator play tests). */
+  suiteId: number;
   name: string;
   /** Row-major playable cells (length width × height); null = every cell is playable. */
   mask: boolean[] | null;
@@ -83,10 +86,17 @@ export interface GameSnapshot {
   hintArrowId: string | null;
 }
 
-export interface ProgressData {
+export interface SuiteProgress {
   highestLevel: number;
   completedLevels: number[];
   bestScores: Record<string, number>;
+}
+
+export interface ProgressData {
+  /** Keyed by suite id. */
+  suites: Record<string, SuiteProgress>;
+  /** Suite the PLAY button continues. */
+  lastSuiteId: number;
   settings: {
     sound: boolean;
     haptics: boolean;

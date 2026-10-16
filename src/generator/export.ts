@@ -79,5 +79,5 @@ export function toLevelFile(gen: GeneratedLevel, meta: ExportMeta) {
 }
 
 export function levelFileName(level: number): string {
-  return `level-${String(level).padStart(2, '0')}.json`;
+  return `level-${String(level).padStart(3, '0')}.json`;
 }

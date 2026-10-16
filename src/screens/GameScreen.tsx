@@ -53,9 +53,9 @@ export function GameScreen() {
     (height * config.board.maxHeightFraction) / level.height,
   );
   const remaining = snapshot.arrows.filter((a) => a.active).length;
-  const hasNext = playtest || getNextLevelId(snapshot.levelId) !== null;
+  const hasNext = playtest || getNextLevelId(level.suiteId, level.id) !== null;
   const showResult = snapshot.status === 'won' || snapshot.status === 'lost';
-  const title = playtest ? 'Play Test' : `Level ${snapshot.levelId}`;
+  const title = playtest ? 'Play Test' : `Level ${level.id}`;
 
   return (
     <SafeAreaView style={styles.safe}>

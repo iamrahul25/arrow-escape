@@ -8,6 +8,7 @@ import { GeneratorScreen } from './src/screens/GeneratorScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { LevelSelectScreen } from './src/screens/LevelSelectScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
+import { SuiteSelectScreen } from './src/screens/SuiteSelectScreen';
 import { useGameStore } from './src/store/gameStore';
 import { colors } from './src/theme';
 
@@ -15,6 +16,8 @@ function RootNavigator() {
   const screen = useGameStore((s) => s.screen);
 
   switch (screen) {
+    case 'suites':
+      return <SuiteSelectScreen />;
     case 'levels':
       return <LevelSelectScreen />;
     case 'game':

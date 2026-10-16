@@ -1,0 +1,115 @@
+{
+  "suite": 1,
+  "version": 1,
+  "level": 1,
+  "name": "Square 4×4",
+  "board": {
+    "width": 4,
+    "height": 4
+  },
+  "hintQuota": 2,
+  "generation": {
+    "seed": 1001007,
+    "generatorVersion": "2.0.0",
+    "shape": "rectangle",
+    "minLength": 2,
+    "maxLength": 5,
+    "turnChance": 0.35
+  },
+  "stats": {
+    "arrowCount": 4,
+    "bendCount": 4,
+    "coverage": 1,
+    "emptyCells": 0,
+    "initialAvailable": 1,
+    "solveDepth": 4
+  },
+  "solution": [
+    "A03",
+    "A01",
+    "A04",
+    "A02"
+  ],
+  "arrows": [
+    {
+      "id": "A01",
+      "start": {
+        "x": 0,
+        "y": 1
+      },
+      "segments": [
+        {
+          "direction": "up",
+          "length": 1
+        },
+        {
+          "direction": "right",
+          "length": 2
+        }
+      ],
+      "head": {
+        "direction": "right"
+      }
+    },
+    {
+      "id": "A02",
+      "start": {
+        "x": 2,
+        "y": 1
+      },
+      "segments": [
+        {
+          "direction": "left",
+          "length": 1
+        },
+        {
+          "direction": "down",
+          "length": 1
+        }
+      ],
+      "head": {
+        "direction": "down"
+      }
+    },
+    {
+      "id": "A03",
+      "start": {
+        "x": 2,
+        "y": 2
+      },
+      "segments": [
+        {
+          "direction": "right",
+          "length": 1
+        },
+        {
+          "direction": "up",
+          "length": 2
+        }
+      ],
+      "head": {
+        "direction": "up"
+      }
+    },
+    {
+      "id": "A04",
+      "start": {
+        "x": 3,
+        "y": 3
+      },
+      "segments": [
+        {
+          "direction": "left",
+          "length": 3
+        },
+        {
+          "direction": "up",
+          "length": 1
+        }
+      ],
+      "head": {
+        "direction": "up"
+      }
+    }
+  ]
+}

@@ -2,7 +2,10 @@ import { create } from 'zustand';
 import { generateLevel, type GeneratedLevel } from '../generator/generator';
 import { randomSeed } from '../generator/rng';
 import { fullMask, shapeMask, type ShapeId } from '../generator/shapes';
-import { LEVELS } from '../levels';
+import { getSuite } from '../levels';
+
+/** Generated levels are exported for the Custom Shapes suite. */
+const TARGET_SUITE_ID = 2;
 
 export const GRID_MIN = 10;
 export const GRID_MAX = 100;
@@ -78,7 +81,7 @@ export const useGeneratorStore = create<GeneratorStore>((set, get) => ({
   minLength: 3,
   maxLength: 8,
   turnChance: 0.35,
-  levelNumber: LEVELS.length + 1,
+  levelNumber: (getSuite(TARGET_SUITE_ID)?.levels.length ?? 0) + 1,
   levelName: 'Generated Level',
   hintQuota: 3,
   result: null,

@@ -7,8 +7,7 @@ import { config } from '../config';
 
 export function HomeScreen() {
   const setScreen = useGameStore((s) => s.setScreen);
-  const startLevel = useGameStore((s) => s.startLevel);
-  const progress = useGameStore((s) => s.progress);
+  const continueGame = useGameStore((s) => s.continueGame);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -20,14 +19,11 @@ export function HomeScreen() {
         </View>
 
         <View style={styles.actions}>
-          <Pressable
-            style={styles.play}
-            onPress={() => startLevel(progress.highestLevel)}
-          >
+          <Pressable style={styles.play} onPress={continueGame}>
             <Text style={styles.playText}>▶  PLAY</Text>
           </Pressable>
 
-          <Pressable style={styles.secondary} onPress={() => setScreen('levels')}>
+          <Pressable style={styles.secondary} onPress={() => setScreen('suites')}>
             <Text style={styles.secondaryText}>Levels</Text>
           </Pressable>
 

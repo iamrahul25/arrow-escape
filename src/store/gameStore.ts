@@ -1,10 +1,11 @@
 import { create } from 'zustand';
 import { GameEngine } from '../game/engine';
 import type { GameSnapshot, Level, ProgressData, TapResult } from '../game/types';
-import { getLevel, getNextLevelId, LEVELS } from '../levels';
+import { getLevel, getNextLevelId, getSuite } from '../levels';
 import { config } from '../config';
 import {
   DEFAULT_PROGRESS,
+  getSuiteProgress,
   loadProgress,
   resetProgress as resetStoredProgress,
   saveProgress,
@@ -16,11 +17,13 @@ import {
   hapticWin,
 } from '../utils/haptics';
 
-type Screen = 'home' | 'levels' | 'game' | 'settings' | 'generator';
+type Screen = 'home' | 'suites' | 'levels' | 'game' | 'settings' | 'generator';
 
 interface GameStore {
   screen: Screen;
   progress: ProgressData;
+  /** Suite shown on the level select screen. */
+  selectedSuiteId: number;
   /** Level currently loaded in the engine. */
   level: Level | null;
   /** True when playing a generator level: progress is not saved and exits return to the generator. */
@@ -34,7 +37,10 @@ interface GameStore {
 
   init: () => Promise<void>;
   setScreen: (screen: Screen) => void;
-  startLevel: (levelId: number) => void;
+  openSuite: (suiteId: number) => void;
+  /** Resume the last played suite at its furthest unlocked level. */
+  continueGame: () => void;
+  startLevel: (suiteId: number, levelId: number) => void;
   startPlaytest: (level: Level) => void;
   exitGame: () => void;
   tapArrow: (arrowId: string) => TapResult | null;
@@ -45,10 +51,10 @@ interface GameStore {
   clearTransient: () => void;
   tick: () => void;
   completeAndAdvance: () => void;
-  markLevelComplete: (levelId: number, moves: number) => Promise<void>;
+  markLevelComplete: (suiteId: number, levelId: number, moves: number) => Promise<void>;
   toggleSetting: (key: 'sound' | 'haptics') => Promise<void>;
   resetProgress: () => Promise<void>;
-  isLevelUnlocked: (levelId: number) => boolean;
+  isLevelUnlocked: (suiteId: number, levelId: number) => boolean;
 }
 
 const engine = new GameEngine();
@@ -56,6 +62,7 @@ const engine = new GameEngine();
 export const useGameStore = create<GameStore>((set, get) => ({
   screen: 'home',
   progress: DEFAULT_PROGRESS,
+  selectedSuiteId: DEFAULT_PROGRESS.lastSuiteId,
   level: null,
   playtest: false,
   snapshot: null,
@@ -67,17 +74,37 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   init: async () => {
     const progress = await loadProgress();
-    set({ progress });
+    set({ progress, selectedSuiteId: progress.lastSuiteId });
   },
 
   setScreen: (screen) => set({ screen }),
 
-  startLevel: (levelId) => {
-    const level = getLevel(levelId);
+  openSuite: (suiteId) => set({ selectedSuiteId: suiteId, screen: 'levels' }),
+
+  continueGame: () => {
+    const { progress } = get();
+    const suite = getSuite(progress.lastSuiteId) ?? getSuite(1);
+    if (!suite || suite.levels.length === 0) {
+      set({ screen: 'suites' });
+      return;
+    }
+    const highest = getSuiteProgress(progress, suite.id).highestLevel;
+    get().startLevel(suite.id, Math.min(highest, suite.levels.length));
+  },
+
+  startLevel: (suiteId, levelId) => {
+    const level = getLevel(suiteId, levelId);
     if (!level) return;
     const snapshot = engine.loadLevel(level);
+    const { progress } = get();
+    if (progress.lastSuiteId !== suiteId) {
+      const next = { ...progress, lastSuiteId: suiteId };
+      void saveProgress(next);
+      set({ progress: next });
+    }
     set({
       screen: 'game',
+      selectedSuiteId: suiteId,
       level,
       playtest: false,
       snapshot,
@@ -124,8 +151,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       if (result.levelComplete) {
         void hapticWin(progress.settings.haptics);
-        if (!get().playtest) {
-          void get().markLevelComplete(next.levelId, next.moves);
+        const { playtest, level } = get();
+        if (!playtest && level) {
+          void get().markLevelComplete(level.suiteId, level.id, next.moves);
         }
       }
     } else if (result.blocked) {
@@ -182,43 +210,45 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   completeAndAdvance: () => {
-    const { snapshot, playtest } = get();
-    if (!snapshot) return;
+    const { level, playtest } = get();
+    if (!level) return;
     if (playtest) {
       set({ screen: 'generator' });
       return;
     }
-    const nextId = getNextLevelId(snapshot.levelId);
+    const nextId = getNextLevelId(level.suiteId, level.id);
     if (nextId) {
-      get().startLevel(nextId);
+      get().startLevel(level.suiteId, nextId);
     } else {
       set({ screen: 'levels' });
     }
   },
 
-  markLevelComplete: async (levelId, moves) => {
+  markLevelComplete: async (suiteId, levelId, moves) => {
     const { progress } = get();
-    const completedLevels = progress.completedLevels.includes(levelId)
-      ? progress.completedLevels
-      : [...progress.completedLevels, levelId];
+    const suite = getSuiteProgress(progress, suiteId);
+    const completedLevels = suite.completedLevels.includes(levelId)
+      ? suite.completedLevels
+      : [...suite.completedLevels, levelId];
 
-    const prevBest = progress.bestScores[String(levelId)];
+    const prevBest = suite.bestScores[String(levelId)];
     const bestScores = {
-      ...progress.bestScores,
+      ...suite.bestScores,
       [String(levelId)]:
         prevBest === undefined ? moves : Math.min(prevBest, moves),
     };
 
     const highestLevel = Math.max(
-      progress.highestLevel,
-      Math.min(levelId + 1, LEVELS.length),
+      suite.highestLevel,
+      Math.min(levelId + 1, getSuite(suiteId)?.levels.length ?? levelId),
     );
 
     const next: ProgressData = {
       ...progress,
-      completedLevels,
-      bestScores,
-      highestLevel,
+      suites: {
+        ...progress.suites,
+        [String(suiteId)]: { completedLevels, bestScores, highestLevel },
+      },
     };
 
     await saveProgress(next);
@@ -243,9 +273,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ progress, screen: 'home', snapshot: null });
   },
 
-  isLevelUnlocked: (levelId) => {
+  isLevelUnlocked: (suiteId, levelId) => {
     if (config.unlockAllLevels) return true;
-    const { progress } = get();
-    return levelId <= progress.highestLevel;
+    return levelId <= getSuiteProgress(get().progress, suiteId).highestLevel;
   },
 }));
