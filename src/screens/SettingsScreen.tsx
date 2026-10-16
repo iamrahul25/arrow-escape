@@ -49,6 +49,17 @@ export function SettingsScreen() {
             trackColor={{ true: colors.blue, false: colors.border }}
           />
         </View>
+        <View style={styles.row}>
+          <View style={styles.labelWrap}>
+            <Text style={styles.label}>🛠 Developer Mode</Text>
+            <Text style={styles.caption}>Unlimited hints and Auto play</Text>
+          </View>
+          <Switch
+            value={progress.settings.developerMode}
+            onValueChange={() => void toggleSetting('developerMode')}
+            trackColor={{ true: colors.blue, false: colors.border }}
+          />
+        </View>
       </View>
 
       <Pressable style={styles.reset} onPress={confirmReset}>
@@ -80,10 +91,19 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
+  labelWrap: {
+    flex: 1,
+    marginRight: spacing.md,
+  },
   label: {
     fontSize: 16,
     color: colors.navy,
     fontWeight: '600',
+  },
+  caption: {
+    fontSize: 13,
+    color: colors.muted,
+    marginTop: 2,
   },
   reset: {
     marginHorizontal: spacing.lg,

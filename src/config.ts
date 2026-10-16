@@ -45,6 +45,8 @@ export const config = {
     shakeStepMs: 40,
     /** Total shake settle time before clearing state (ms). */
     shakeDoneMs: 220,
+    /** How long Auto (developer mode) shows the hint before moving the arrow (ms). */
+    autoMoveDelayMs: 300,
   },
 
   board: {

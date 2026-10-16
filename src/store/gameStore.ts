@@ -33,6 +33,8 @@ interface GameStore {
   elapsedSeconds: number;
   shakingArrowId: string | null;
   escapingArrowId: string | null;
+  /** True while Auto is showing the hint before moving it. */
+  autoPending: boolean;
   engine: GameEngine;
 
   init: () => Promise<void>;
@@ -45,6 +47,8 @@ interface GameStore {
   exitGame: () => void;
   tapArrow: (arrowId: string) => TapResult | null;
   useHint: () => string | null;
+  /** Developer mode: show a hint, then move that arrow. */
+  autoMove: () => void;
   restartLevel: () => void;
   pause: () => void;
   resume: () => void;
@@ -52,7 +56,7 @@ interface GameStore {
   tick: () => void;
   completeAndAdvance: () => void;
   markLevelComplete: (suiteId: number, levelId: number, moves: number) => Promise<void>;
-  toggleSetting: (key: 'sound' | 'haptics') => Promise<void>;
+  toggleSetting: (key: keyof ProgressData['settings']) => Promise<void>;
   resetProgress: () => Promise<void>;
   isLevelUnlocked: (suiteId: number, levelId: number) => boolean;
 }
@@ -70,6 +74,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   elapsedSeconds: 0,
   shakingArrowId: null,
   escapingArrowId: null,
+  autoPending: false,
   engine,
 
   init: async () => {
@@ -173,9 +178,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   useHint: () => {
-    const id = engine.getHint();
+    const id = engine.getHint(get().progress.settings.developerMode);
     set({ snapshot: engine.getSnapshot() });
     return id;
+  },
+
+  autoMove: () => {
+    const { autoPending, escapingArrowId, snapshot } = get();
+    if (autoPending || escapingArrowId || snapshot?.status !== 'playing') return;
+    const id = get().useHint();
+    if (!id) return;
+    set({ autoPending: true });
+    setTimeout(() => {
+      set({ autoPending: false });
+      // A restart or level change in the meantime clears the hint.
+      if (get().snapshot?.hintArrowId === id) get().tapArrow(id);
+    }, config.animation.autoMoveDelayMs);
   },
 
   restartLevel: () => {

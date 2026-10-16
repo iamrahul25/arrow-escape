@@ -133,14 +133,15 @@ export class GameEngine {
     return getAvailableMoves(this.arrows, this.level);
   }
 
-  getHint(): string | null {
+  /** `unlimited` skips the hint quota (developer mode). */
+  getHint(unlimited = false): string | null {
     if (!this.level || this.status !== 'playing') return null;
-    if (this.hints <= 0) return this.hintArrowId;
+    if (!unlimited && this.hints <= 0) return this.hintArrowId;
 
     const id = getAvailableMoves(this.arrows, this.level)[0]?.id ?? null;
     if (!id) return null;
 
-    this.hints -= 1;
+    if (!unlimited) this.hints -= 1;
     this.hintArrowId = id;
     return id;
   }

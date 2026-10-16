@@ -27,6 +27,9 @@ export function GameScreen() {
   const escapingArrowId = useGameStore((s) => s.escapingArrowId);
   const tapArrow = useGameStore((s) => s.tapArrow);
   const useHint = useGameStore((s) => s.useHint);
+  const autoMove = useGameStore((s) => s.autoMove);
+  const autoPending = useGameStore((s) => s.autoPending);
+  const developerMode = useGameStore((s) => s.progress.settings.developerMode);
   const restartLevel = useGameStore((s) => s.restartLevel);
   const setScreen = useGameStore((s) => s.setScreen);
   const clearTransient = useGameStore((s) => s.clearTransient);
@@ -56,6 +59,8 @@ export function GameScreen() {
   const hasNext = playtest || getNextLevelId(level.suiteId, level.id) !== null;
   const showResult = snapshot.status === 'won' || snapshot.status === 'lost';
   const title = playtest ? 'Play Test' : `Level ${level.id}`;
+  const hintsOut = !developerMode && snapshot.hints <= 0;
+  const autoBusy = autoPending || escapingArrowId !== null || snapshot.status !== 'playing';
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -94,12 +99,21 @@ export function GameScreen() {
 
       <View style={styles.footer}>
         <Pressable
-          style={[styles.hintBtn, snapshot.hints <= 0 && styles.hintDisabled]}
+          style={[styles.hintBtn, hintsOut && styles.hintDisabled]}
           onPress={() => useHint()}
-          disabled={snapshot.hints <= 0 || snapshot.status !== 'playing'}
+          disabled={hintsOut || snapshot.status !== 'playing'}
         >
-          <Text style={styles.hintText}>💡 {snapshot.hints}</Text>
+          <Text style={styles.hintText}>💡 {developerMode ? '∞' : snapshot.hints}</Text>
         </Pressable>
+        {developerMode ? (
+          <Pressable
+            style={[styles.hintBtn, autoBusy && styles.hintDisabled]}
+            onPress={autoMove}
+            disabled={autoBusy}
+          >
+            <Text style={styles.hintText}>🤖 Auto</Text>
+          </Pressable>
+        ) : null}
         <Pressable style={styles.restartBtn} onPress={restartLevel}>
           <Text style={styles.restartText}>↻</Text>
         </Pressable>

@@ -100,5 +100,7 @@ export interface ProgressData {
   settings: {
     sound: boolean;
     haptics: boolean;
+    /** Unlimited hints and the Auto button in game. */
+    developerMode: boolean;
   };
 }
