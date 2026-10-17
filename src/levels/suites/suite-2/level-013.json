@@ -4,195 +4,146 @@
   "level": 13,
   "name": "Custom Shape 13",
   "board": {
-    "width": 30,
-    "height": 32,
+    "width": 22,
+    "height": 29,
     "mask": [
-      "............#####.............",
-      "...........########...........",
-      "..........##########..........",
-      ".........###########..........",
-      ".........##############.......",
-      "......###################.....",
-      "....######################....",
-      "....######################....",
-      "...#######################....",
-      "...#######################....",
-      "...#########################..",
-      "..###########################.",
-      ".#############################",
-      "##############################",
-      "##############################",
-      "##############################",
-      ".############################.",
-      ".###########################..",
-      "..##########################..",
-      "...#########################..",
-      "...########################...",
-      "....######################....",
-      ".....###...#########..##......",
-      "............######............",
-      "............#####.............",
-      ".............####.............",
-      ".............####.............",
-      ".............####.............",
-      ".............####.............",
-      ".............####.............",
-      "............######............",
-      "..........##########.........."
+      ".........####.........",
+      "........######........",
+      "........#######.......",
+      ".......########.......",
+      ".......########.......",
+      ".......########.......",
+      ".......########....##.",
+      ".......########..#####",
+      ".......########..#####",
+      ".####..########..#####",
+      "#####..########..#####",
+      "#####..########..#####",
+      "#####..########..#####",
+      "#####..########..#####",
+      "#####..########..#####",
+      "######.########.######",
+      "#####################.",
+      ".####################.",
+      "..##################..",
+      "...###############....",
+      ".......########.......",
+      ".......########.......",
+      ".......########.......",
+      ".......########.......",
+      ".......########.......",
+      ".......########.......",
+      ".......########.......",
+      ".......########.......",
+      ".......########......."
     ]
   },
   "hintQuota": 3,
   "generation": {
-    "seed": 561603457,
+    "seed": 163205534,
     "generatorVersion": "2.0.0",
-    "shape": "image:2026-10-17_150404-r1-c4.png",
+    "shape": "image:Minimal Black Icon Grid-r3-c3.png",
     "minLength": 7,
     "maxLength": 16,
     "turnChance": 0.45
   },
   "stats": {
-    "arrowCount": 78,
-    "bendCount": 207,
+    "arrowCount": 44,
+    "bendCount": 140,
     "coverage": 1,
     "emptyCells": 0,
-    "initialAvailable": 16,
-    "solveDepth": 24
+    "initialAvailable": 13,
+    "solveDepth": 10
   },
   "solution": [
-    "A01",
-    "A03",
+    "A04",
     "A05",
+    "A06",
     "A07",
-    "A08",
+    "A09",
     "A12",
     "A14",
-    "A18",
-    "A34",
-    "A42",
-    "A53",
-    "A59",
-    "A68",
-    "A69",
-    "A76",
-    "A77",
-    "A06",
-    "A10",
-    "A20",
-    "A23",
-    "A33",
-    "A44",
-    "A60",
-    "A61",
-    "A64",
-    "A66",
-    "A74",
-    "A78",
-    "A32",
-    "A39",
-    "A55",
-    "A56",
-    "A62",
-    "A75",
-    "A26",
-    "A35",
-    "A45",
-    "A54",
-    "A70",
     "A16",
-    "A22",
-    "A09",
-    "A11",
-    "A02",
-    "A15",
-    "A17",
-    "A24",
-    "A04",
-    "A13",
-    "A29",
-    "A36",
-    "A21",
-    "A49",
-    "A27",
+    "A20",
     "A30",
-    "A37",
-    "A25",
-    "A28",
-    "A50",
-    "A31",
+    "A40",
+    "A42",
     "A43",
+    "A01",
+    "A11",
+    "A18",
+    "A33",
+    "A36",
+    "A39",
+    "A44",
+    "A21",
+    "A27",
+    "A31",
+    "A32",
+    "A34",
     "A38",
     "A41",
-    "A52",
-    "A48",
-    "A51",
-    "A65",
+    "A13",
+    "A22",
+    "A26",
     "A19",
-    "A67",
-    "A58",
-    "A72",
-    "A47",
-    "A46",
-    "A63",
-    "A57",
-    "A71",
-    "A73",
-    "A40"
+    "A23",
+    "A08",
+    "A24",
+    "A25",
+    "A10",
+    "A15",
+    "A28",
+    "A02",
+    "A17",
+    "A29",
+    "A03",
+    "A35",
+    "A37"
   ],
   "arrows": [
     {
       "id": "A01",
       "start": {
-        "x": 13,
-        "y": 2
+        "x": 8,
+        "y": 1
       },
       "segments": [
         {
-          "direction": "up",
-          "length": 2
-        },
-        {
           "direction": "right",
-          "length": 2
-        },
-        {
-          "direction": "down",
-          "length": 1
-        },
-        {
-          "direction": "left",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 2
-        },
-        {
-          "direction": "up",
           "length": 2
         }
       ],
       "head": {
-        "direction": "up"
+        "direction": "right"
       }
     },
     {
       "id": "A02",
       "start": {
-        "x": 9,
+        "x": 7,
         "y": 3
       },
       "segments": [
         {
           "direction": "down",
+          "length": 5
+        },
+        {
+          "direction": "right",
+          "length": 3
+        },
+        {
+          "direction": "up",
           "length": 1
+        },
+        {
+          "direction": "right",
+          "length": 2
         }
       ],
       "head": {
-        "direction": "down"
+        "direction": "right"
       }
     },
     {
@@ -204,40 +155,28 @@
       "segments": [
         {
           "direction": "left",
-          "length": 1
+          "length": 2
         },
         {
-          "direction": "up",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "up",
-          "length": 1
+          "direction": "down",
+          "length": 2
         },
         {
           "direction": "right",
           "length": 1
         },
         {
-          "direction": "up",
+          "direction": "down",
           "length": 1
-        }
-      ],
-      "head": {
-        "direction": "up"
-      }
-    },
-    {
-      "id": "A04",
-      "start": {
-        "x": 12,
-        "y": 4
-      },
-      "segments": [
+        },
+        {
+          "direction": "left",
+          "length": 1
+        },
+        {
+          "direction": "down",
+          "length": 1
+        },
         {
           "direction": "left",
           "length": 1
@@ -248,23 +187,15 @@
       }
     },
     {
-      "id": "A05",
+      "id": "A04",
       "start": {
-        "x": 15,
-        "y": 4
+        "x": 14,
+        "y": 3
       },
       "segments": [
         {
           "direction": "up",
           "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 2
-        },
-        {
-          "direction": "up",
-          "length": 2
         }
       ],
       "head": {
@@ -272,14 +203,14 @@
       }
     },
     {
-      "id": "A06",
+      "id": "A05",
       "start": {
-        "x": 17,
+        "x": 10,
         "y": 4
       },
       "segments": [
         {
-          "direction": "left",
+          "direction": "right",
           "length": 1
         },
         {
@@ -287,11 +218,11 @@
           "length": 1
         },
         {
-          "direction": "left",
-          "length": 1
+          "direction": "right",
+          "length": 3
         },
         {
-          "direction": "down",
+          "direction": "up",
           "length": 1
         },
         {
@@ -308,15 +239,15 @@
       }
     },
     {
-      "id": "A07",
+      "id": "A06",
       "start": {
-        "x": 19,
+        "x": 12,
         "y": 4
       },
       "segments": [
         {
           "direction": "up",
-          "length": 2
+          "length": 4
         }
       ],
       "head": {
@@ -324,43 +255,47 @@
       }
     },
     {
-      "id": "A08",
+      "id": "A07",
       "start": {
-        "x": 20,
-        "y": 4
+        "x": 8,
+        "y": 6
       },
       "segments": [
         {
+          "direction": "up",
+          "length": 4
+        },
+        {
           "direction": "right",
+          "length": 3
+        },
+        {
+          "direction": "up",
+          "length": 2
+        },
+        {
+          "direction": "left",
           "length": 2
         }
       ],
       "head": {
-        "direction": "right"
+        "direction": "left"
       }
     },
     {
-      "id": "A09",
+      "id": "A08",
       "start": {
-        "x": 8,
-        "y": 5
+        "x": 11,
+        "y": 6
       },
       "segments": [
         {
-          "direction": "left",
-          "length": 2
+          "direction": "right",
+          "length": 3
         },
         {
           "direction": "down",
-          "length": 1
-        },
-        {
-          "direction": "left",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 2
+          "length": 4
         }
       ],
       "head": {
@@ -368,23 +303,31 @@
       }
     },
     {
-      "id": "A10",
+      "id": "A09",
       "start": {
-        "x": 7,
+        "x": 19,
         "y": 6
       },
       "segments": [
         {
           "direction": "right",
-          "length": 2
-        },
-        {
-          "direction": "up",
           "length": 1
-        },
+        }
+      ],
+      "head": {
+        "direction": "right"
+      }
+    },
+    {
+      "id": "A10",
+      "start": {
+        "x": 11,
+        "y": 8
+      },
+      "segments": [
         {
           "direction": "right",
-          "length": 1
+          "length": 2
         },
         {
           "direction": "up",
@@ -398,16 +341,32 @@
     {
       "id": "A11",
       "start": {
-        "x": 10,
-        "y": 6
+        "x": 18,
+        "y": 8
       },
       "segments": [
         {
           "direction": "right",
           "length": 1
+        }
+      ],
+      "head": {
+        "direction": "right"
+      }
+    },
+    {
+      "id": "A12",
+      "start": {
+        "x": 4,
+        "y": 9
+      },
+      "segments": [
+        {
+          "direction": "left",
+          "length": 1
         },
         {
-          "direction": "up",
+          "direction": "down",
           "length": 1
         },
         {
@@ -420,7 +379,35 @@
         },
         {
           "direction": "left",
-          "length": 3
+          "length": 2
+        },
+        {
+          "direction": "down",
+          "length": 5
+        }
+      ],
+      "head": {
+        "direction": "down"
+      }
+    },
+    {
+      "id": "A13",
+      "start": {
+        "x": 7,
+        "y": 9
+      },
+      "segments": [
+        {
+          "direction": "right",
+          "length": 2
+        },
+        {
+          "direction": "down",
+          "length": 1
+        },
+        {
+          "direction": "left",
+          "length": 2
         },
         {
           "direction": "down",
@@ -432,56 +419,40 @@
       }
     },
     {
-      "id": "A12",
-      "start": {
-        "x": 16,
-        "y": 6
-      },
-      "segments": [
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "up",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "up",
-          "length": 4
-        }
-      ],
-      "head": {
-        "direction": "up"
-      }
-    },
-    {
-      "id": "A13",
-      "start": {
-        "x": 23,
-        "y": 6
-      },
-      "segments": [
-        {
-          "direction": "left",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "left"
-      }
-    },
-    {
       "id": "A14",
       "start": {
-        "x": 4,
-        "y": 7
+        "x": 18,
+        "y": 9
       },
       "segments": [
+        {
+          "direction": "right",
+          "length": 1
+        },
+        {
+          "direction": "down",
+          "length": 1
+        },
+        {
+          "direction": "left",
+          "length": 2
+        },
+        {
+          "direction": "up",
+          "length": 3
+        },
+        {
+          "direction": "right",
+          "length": 3
+        },
+        {
+          "direction": "down",
+          "length": 1
+        },
+        {
+          "direction": "right",
+          "length": 1
+        },
         {
           "direction": "up",
           "length": 1
@@ -494,26 +465,14 @@
     {
       "id": "A15",
       "start": {
-        "x": 7,
-        "y": 7
+        "x": 13,
+        "y": 10
       },
       "segments": [
         {
-          "direction": "left",
+          "direction": "up",
           "length": 1
-        }
-      ],
-      "head": {
-        "direction": "left"
-      }
-    },
-    {
-      "id": "A16",
-      "start": {
-        "x": 11,
-        "y": 7
-      },
-      "segments": [
+        },
         {
           "direction": "left",
           "length": 3
@@ -521,22 +480,6 @@
         {
           "direction": "down",
           "length": 3
-        },
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 1
-        },
-        {
-          "direction": "left",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 2
         }
       ],
       "head": {
@@ -544,19 +487,23 @@
       }
     },
     {
-      "id": "A17",
+      "id": "A16",
       "start": {
-        "x": 19,
-        "y": 7
+        "x": 20,
+        "y": 10
       },
       "segments": [
+        {
+          "direction": "down",
+          "length": 1
+        },
         {
           "direction": "right",
           "length": 1
         },
         {
-          "direction": "up",
-          "length": 2
+          "direction": "down",
+          "length": 1
         },
         {
           "direction": "left",
@@ -564,6 +511,26 @@
         },
         {
           "direction": "down",
+          "length": 1
+        },
+        {
+          "direction": "right",
+          "length": 1
+        }
+      ],
+      "head": {
+        "direction": "right"
+      }
+    },
+    {
+      "id": "A17",
+      "start": {
+        "x": 21,
+        "y": 10
+      },
+      "segments": [
+        {
+          "direction": "up",
           "length": 1
         },
         {
@@ -578,36 +545,32 @@
     {
       "id": "A18",
       "start": {
-        "x": 22,
-        "y": 7
+        "x": 0,
+        "y": 11
       },
       "segments": [
         {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 1
-        },
-        {
-          "direction": "left",
-          "length": 1
-        },
-        {
-          "direction": "down",
+          "direction": "up",
           "length": 1
         },
         {
           "direction": "right",
-          "length": 3
+          "length": 1
         },
         {
           "direction": "up",
+          "length": 1
+        },
+        {
+          "direction": "right",
+          "length": 1
+        },
+        {
+          "direction": "down",
           "length": 3
         },
         {
-          "direction": "left",
+          "direction": "right",
           "length": 1
         },
         {
@@ -622,13 +585,29 @@
     {
       "id": "A19",
       "start": {
-        "x": 24,
-        "y": 7
+        "x": 14,
+        "y": 11
       },
       "segments": [
         {
           "direction": "down",
+          "length": 2
+        },
+        {
+          "direction": "left",
           "length": 1
+        },
+        {
+          "direction": "up",
+          "length": 1
+        },
+        {
+          "direction": "left",
+          "length": 1
+        },
+        {
+          "direction": "down",
+          "length": 2
         }
       ],
       "head": {
@@ -638,52 +617,52 @@
     {
       "id": "A20",
       "start": {
-        "x": 16,
-        "y": 8
+        "x": 19,
+        "y": 11
       },
       "segments": [
         {
           "direction": "left",
-          "length": 3
+          "length": 2
         },
         {
-          "direction": "up",
-          "length": 5
-        },
-        {
-          "direction": "left",
+          "direction": "down",
           "length": 1
         },
         {
-          "direction": "up",
+          "direction": "right",
+          "length": 2
+        },
+        {
+          "direction": "down",
+          "length": 1
+        },
+        {
+          "direction": "left",
+          "length": 2
+        },
+        {
+          "direction": "down",
+          "length": 1
+        },
+        {
+          "direction": "right",
+          "length": 4
+        },
+        {
+          "direction": "down",
           "length": 1
         }
       ],
       "head": {
-        "direction": "up"
+        "direction": "down"
       }
     },
     {
       "id": "A21",
       "start": {
-        "x": 20,
-        "y": 8
-      },
-      "segments": [
-        {
-          "direction": "left",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "left"
-      }
-    },
-    {
-      "id": "A22",
-      "start": {
-        "x": 6,
-        "y": 9
+        "x": 8,
+        "y": 12
       },
       "segments": [
         {
@@ -692,7 +671,23 @@
         },
         {
           "direction": "down",
-          "length": 2
+          "length": 6
+        }
+      ],
+      "head": {
+        "direction": "down"
+      }
+    },
+    {
+      "id": "A22",
+      "start": {
+        "x": 1,
+        "y": 13
+      },
+      "segments": [
+        {
+          "direction": "down",
+          "length": 1
         }
       ],
       "head": {
@@ -702,28 +697,8 @@
     {
       "id": "A23",
       "start": {
-        "x": 21,
-        "y": 9
-      },
-      "segments": [
-        {
-          "direction": "up",
-          "length": 4
-        },
-        {
-          "direction": "right",
-          "length": 2
-        }
-      ],
-      "head": {
-        "direction": "right"
-      }
-    },
-    {
-      "id": "A24",
-      "start": {
-        "x": 6,
-        "y": 10
+        "x": 8,
+        "y": 13
       },
       "segments": [
         {
@@ -748,27 +723,47 @@
       }
     },
     {
-      "id": "A25",
+      "id": "A24",
       "start": {
-        "x": 11,
-        "y": 10
+        "x": 10,
+        "y": 13
       },
       "segments": [
+        {
+          "direction": "right",
+          "length": 1
+        },
+        {
+          "direction": "up",
+          "length": 3
+        },
+        {
+          "direction": "right",
+          "length": 1
+        },
         {
           "direction": "down",
           "length": 1
         },
         {
-          "direction": "left",
+          "direction": "right",
           "length": 1
-        },
-        {
-          "direction": "up",
-          "length": 2
-        },
+        }
+      ],
+      "head": {
+        "direction": "right"
+      }
+    },
+    {
+      "id": "A25",
+      "start": {
+        "x": 10,
+        "y": 14
+      },
+      "segments": [
         {
           "direction": "right",
-          "length": 5
+          "length": 1
         }
       ],
       "head": {
@@ -779,16 +774,24 @@
       "id": "A26",
       "start": {
         "x": 13,
-        "y": 10
+        "y": 14
       },
       "segments": [
         {
-          "direction": "left",
+          "direction": "right",
           "length": 1
         },
         {
           "direction": "down",
-          "length": 7
+          "length": 1
+        },
+        {
+          "direction": "left",
+          "length": 3
+        },
+        {
+          "direction": "down",
+          "length": 1
         }
       ],
       "head": {
@@ -798,10 +801,22 @@
     {
       "id": "A27",
       "start": {
-        "x": 19,
-        "y": 10
+        "x": 1,
+        "y": 15
       },
       "segments": [
+        {
+          "direction": "left",
+          "length": 1
+        },
+        {
+          "direction": "up",
+          "length": 3
+        },
+        {
+          "direction": "right",
+          "length": 1
+        },
         {
           "direction": "up",
           "length": 1
@@ -814,46 +829,34 @@
     {
       "id": "A28",
       "start": {
-        "x": 25,
-        "y": 10
+        "x": 5,
+        "y": 15
       },
       "segments": [
         {
           "direction": "left",
-          "length": 3
-        },
-        {
-          "direction": "down",
-          "length": 3
-        },
-        {
-          "direction": "left",
-          "length": 1
+          "length": 2
         },
         {
           "direction": "up",
           "length": 1
         },
         {
-          "direction": "left",
-          "length": 3
+          "direction": "right",
+          "length": 1
         }
       ],
       "head": {
-        "direction": "left"
+        "direction": "right"
       }
     },
     {
       "id": "A29",
       "start": {
-        "x": 18,
-        "y": 11
+        "x": 20,
+        "y": 15
       },
       "segments": [
-        {
-          "direction": "up",
-          "length": 4
-        },
         {
           "direction": "left",
           "length": 4
@@ -866,73 +869,73 @@
     {
       "id": "A30",
       "start": {
-        "x": 19,
-        "y": 11
+        "x": 0,
+        "y": 16
       },
       "segments": [
         {
           "direction": "right",
-          "length": 2
-        },
-        {
-          "direction": "up",
           "length": 1
         },
         {
-          "direction": "left",
-          "length": 1
-        },
-        {
-          "direction": "up",
+          "direction": "down",
           "length": 1
         }
       ],
       "head": {
-        "direction": "up"
+        "direction": "down"
       }
     },
     {
       "id": "A31",
       "start": {
-        "x": 24,
-        "y": 11
+        "x": 9,
+        "y": 16
       },
       "segments": [
         {
-          "direction": "left",
+          "direction": "right",
           "length": 1
+        },
+        {
+          "direction": "up",
+          "length": 1
+        },
+        {
+          "direction": "left",
+          "length": 2
+        },
+        {
+          "direction": "down",
+          "length": 8
         }
       ],
       "head": {
-        "direction": "left"
+        "direction": "down"
       }
     },
     {
       "id": "A32",
       "start": {
-        "x": 1,
-        "y": 12
+        "x": 12,
+        "y": 16
       },
       "segments": [
         {
+          "direction": "right",
+          "length": 3
+        },
+        {
+          "direction": "down",
+          "length": 3
+        },
+        {
+          "direction": "left",
+          "length": 1
+        },
+        {
           "direction": "down",
           "length": 2
-        },
-        {
-          "direction": "right",
-          "length": 2
-        },
-        {
-          "direction": "down",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 1
         }
       ],
       "head": {
@@ -943,68 +946,28 @@
       "id": "A33",
       "start": {
         "x": 3,
-        "y": 12
+        "y": 17
       },
       "segments": [
         {
-          "direction": "down",
-          "length": 1
-        },
-        {
-          "direction": "left",
-          "length": 1
-        },
-        {
           "direction": "up",
-          "length": 2
+          "length": 1
+        },
+        {
+          "direction": "right",
+          "length": 3
+        },
+        {
+          "direction": "down",
+          "length": 3
         },
         {
           "direction": "right",
           "length": 1
         },
         {
-          "direction": "up",
-          "length": 2
-        }
-      ],
-      "head": {
-        "direction": "up"
-      }
-    },
-    {
-      "id": "A34",
-      "start": {
-        "x": 7,
-        "y": 12
-      },
-      "segments": [
-        {
-          "direction": "left",
-          "length": 3
-        },
-        {
-          "direction": "up",
-          "length": 4
-        },
-        {
-          "direction": "left",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "left"
-      }
-    },
-    {
-      "id": "A35",
-      "start": {
-        "x": 11,
-        "y": 12
-      },
-      "segments": [
-        {
           "direction": "down",
-          "length": 5
+          "length": 4
         }
       ],
       "head": {
@@ -1012,12 +975,16 @@
       }
     },
     {
-      "id": "A36",
+      "id": "A34",
       "start": {
         "x": 14,
-        "y": 12
+        "y": 17
       },
       "segments": [
+        {
+          "direction": "down",
+          "length": 1
+        },
         {
           "direction": "left",
           "length": 1
@@ -1027,28 +994,44 @@
           "length": 1
         },
         {
-          "direction": "right",
-          "length": 1
+          "direction": "left",
+          "length": 4
         },
         {
-          "direction": "up",
-          "length": 1
-        },
-        {
-          "direction": "right",
+          "direction": "down",
           "length": 2
-        },
+        }
+      ],
+      "head": {
+        "direction": "down"
+      }
+    },
+    {
+      "id": "A35",
+      "start": {
+        "x": 20,
+        "y": 17
+      },
+      "segments": [
         {
           "direction": "up",
           "length": 1
         },
         {
-          "direction": "right",
+          "direction": "left",
+          "length": 3
+        },
+        {
+          "direction": "down",
+          "length": 3
+        },
+        {
+          "direction": "left",
           "length": 1
         },
         {
           "direction": "up",
-          "length": 1
+          "length": 3
         }
       ],
       "head": {
@@ -1056,28 +1039,92 @@
       }
     },
     {
+      "id": "A36",
+      "start": {
+        "x": 10,
+        "y": 18
+      },
+      "segments": [
+        {
+          "direction": "right",
+          "length": 2
+        },
+        {
+          "direction": "down",
+          "length": 1
+        },
+        {
+          "direction": "right",
+          "length": 1
+        },
+        {
+          "direction": "down",
+          "length": 3
+        },
+        {
+          "direction": "right",
+          "length": 1
+        },
+        {
+          "direction": "down",
+          "length": 1
+        }
+      ],
+      "head": {
+        "direction": "down"
+      }
+    },
+    {
       "id": "A37",
       "start": {
-        "x": 17,
-        "y": 12
+        "x": 19,
+        "y": 18
       },
       "segments": [
         {
           "direction": "left",
           "length": 1
+        },
+        {
+          "direction": "up",
+          "length": 1
+        },
+        {
+          "direction": "right",
+          "length": 1
         }
       ],
       "head": {
-        "direction": "left"
+        "direction": "right"
       }
     },
     {
       "id": "A38",
       "start": {
-        "x": 27,
-        "y": 12
+        "x": 3,
+        "y": 19
       },
       "segments": [
+        {
+          "direction": "up",
+          "length": 1
+        },
+        {
+          "direction": "right",
+          "length": 1
+        },
+        {
+          "direction": "down",
+          "length": 1
+        },
+        {
+          "direction": "right",
+          "length": 1
+        },
+        {
+          "direction": "up",
+          "length": 2
+        },
         {
           "direction": "left",
           "length": 1
@@ -1090,20 +1137,32 @@
     {
       "id": "A39",
       "start": {
-        "x": 0,
-        "y": 13
+        "x": 11,
+        "y": 19
       },
       "segments": [
         {
+          "direction": "left",
+          "length": 1
+        },
+        {
           "direction": "down",
-          "length": 2
+          "length": 1
+        },
+        {
+          "direction": "left",
+          "length": 1
+        },
+        {
+          "direction": "down",
+          "length": 1
         },
         {
           "direction": "right",
           "length": 2
         },
         {
-          "direction": "down",
+          "direction": "up",
           "length": 1
         },
         {
@@ -1122,13 +1181,41 @@
     {
       "id": "A40",
       "start": {
-        "x": 13,
-        "y": 13
+        "x": 11,
+        "y": 22
       },
       "segments": [
         {
+          "direction": "left",
+          "length": 2
+        },
+        {
           "direction": "down",
-          "length": 4
+          "length": 2
+        },
+        {
+          "direction": "left",
+          "length": 2
+        },
+        {
+          "direction": "down",
+          "length": 2
+        },
+        {
+          "direction": "right",
+          "length": 1
+        },
+        {
+          "direction": "down",
+          "length": 1
+        },
+        {
+          "direction": "left",
+          "length": 1
+        },
+        {
+          "direction": "down",
+          "length": 1
         }
       ],
       "head": {
@@ -1138,28 +1225,16 @@
     {
       "id": "A41",
       "start": {
-        "x": 19,
-        "y": 13
+        "x": 10,
+        "y": 23
       },
       "segments": [
         {
           "direction": "right",
           "length": 1
-        }
-      ],
-      "head": {
-        "direction": "right"
-      }
-    },
-    {
-      "id": "A42",
-      "start": {
-        "x": 24,
-        "y": 13
-      },
-      "segments": [
+        },
         {
-          "direction": "up",
+          "direction": "down",
           "length": 1
         },
         {
@@ -1168,19 +1243,59 @@
         },
         {
           "direction": "down",
-          "length": 5
+          "length": 1
         },
         {
           "direction": "right",
-          "length": 2
+          "length": 1
         },
         {
           "direction": "down",
           "length": 1
         },
         {
+          "direction": "left",
+          "length": 1
+        }
+      ],
+      "head": {
+        "direction": "left"
+      }
+    },
+    {
+      "id": "A42",
+      "start": {
+        "x": 12,
+        "y": 23
+      },
+      "segments": [
+        {
           "direction": "right",
-          "length": 2
+          "length": 1
+        },
+        {
+          "direction": "down",
+          "length": 1
+        },
+        {
+          "direction": "left",
+          "length": 1
+        },
+        {
+          "direction": "down",
+          "length": 4
+        },
+        {
+          "direction": "right",
+          "length": 1
+        },
+        {
+          "direction": "up",
+          "length": 1
+        },
+        {
+          "direction": "right",
+          "length": 1
         },
         {
           "direction": "down",
@@ -1194,917 +1309,25 @@
     {
       "id": "A43",
       "start": {
-        "x": 28,
-        "y": 13
-      },
-      "segments": [
-        {
-          "direction": "left",
-          "length": 3
-        },
-        {
-          "direction": "up",
-          "length": 2
-        },
-        {
-          "direction": "right",
-          "length": 2
-        },
-        {
-          "direction": "up",
-          "length": 1
-        },
-        {
-          "direction": "left",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "left"
-      }
-    },
-    {
-      "id": "A44",
-      "start": {
-        "x": 4,
-        "y": 14
-      },
-      "segments": [
-        {
-          "direction": "up",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "up"
-      }
-    },
-    {
-      "id": "A45",
-      "start": {
-        "x": 6,
-        "y": 14
-      },
-      "segments": [
-        {
-          "direction": "left",
-          "length": 1
-        },
-        {
-          "direction": "up",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 2
-        },
-        {
-          "direction": "down",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 2
-        },
-        {
-          "direction": "up",
-          "length": 2
-        },
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 2
-        }
-      ],
-      "head": {
-        "direction": "down"
-      }
-    },
-    {
-      "id": "A46",
-      "start": {
-        "x": 17,
-        "y": 14
-      },
-      "segments": [
-        {
-          "direction": "up",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 2
-        }
-      ],
-      "head": {
-        "direction": "right"
-      }
-    },
-    {
-      "id": "A47",
-      "start": {
-        "x": 20,
-        "y": 14
-      },
-      "segments": [
-        {
-          "direction": "right",
-          "length": 2
-        },
-        {
-          "direction": "down",
-          "length": 2
-        }
-      ],
-      "head": {
-        "direction": "down"
-      }
-    },
-    {
-      "id": "A48",
-      "start": {
-        "x": 28,
-        "y": 14
-      },
-      "segments": [
-        {
-          "direction": "left",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 3
-        },
-        {
-          "direction": "left",
-          "length": 1
-        },
-        {
-          "direction": "up",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "up"
-      }
-    },
-    {
-      "id": "A49",
-      "start": {
         "x": 14,
-        "y": 15
-      },
-      "segments": [
-        {
-          "direction": "up",
-          "length": 2
-        },
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "up",
-          "length": 2
-        },
-        {
-          "direction": "right",
-          "length": 2
-        },
-        {
-          "direction": "up",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "up"
-      }
-    },
-    {
-      "id": "A50",
-      "start": {
-        "x": 18,
-        "y": 15
-      },
-      "segments": [
-        {
-          "direction": "left",
-          "length": 3
-        },
-        {
-          "direction": "up",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "up",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "up"
-      }
-    },
-    {
-      "id": "A51",
-      "start": {
-        "x": 25,
-        "y": 15
-      },
-      "segments": [
-        {
-          "direction": "up",
-          "length": 1
-        },
-        {
-          "direction": "left",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 2
-        },
-        {
-          "direction": "right",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "right"
-      }
-    },
-    {
-      "id": "A52",
-      "start": {
-        "x": 26,
-        "y": 15
-      },
-      "segments": [
-        {
-          "direction": "up",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "up"
-      }
-    },
-    {
-      "id": "A53",
-      "start": {
-        "x": 1,
-        "y": 16
-      },
-      "segments": [
-        {
-          "direction": "down",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "down"
-      }
-    },
-    {
-      "id": "A54",
-      "start": {
-        "x": 7,
-        "y": 16
-      },
-      "segments": [
-        {
-          "direction": "up",
-          "length": 1
-        },
-        {
-          "direction": "left",
-          "length": 2
-        }
-      ],
-      "head": {
-        "direction": "left"
-      }
-    },
-    {
-      "id": "A55",
-      "start": {
-        "x": 9,
-        "y": 16
-      },
-      "segments": [
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "up",
-          "length": 1
-        },
-        {
-          "direction": "left",
-          "length": 2
-        },
-        {
-          "direction": "down",
-          "length": 3
-        }
-      ],
-      "head": {
-        "direction": "down"
-      }
-    },
-    {
-      "id": "A56",
-      "start": {
-        "x": 15,
-        "y": 16
-      },
-      "segments": [
-        {
-          "direction": "left",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 2
-        },
-        {
-          "direction": "left",
-          "length": 2
-        },
-        {
-          "direction": "down",
-          "length": 3
-        },
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 2
-        }
-      ],
-      "head": {
-        "direction": "down"
-      }
-    },
-    {
-      "id": "A57",
-      "start": {
-        "x": 16,
-        "y": 16
-      },
-      "segments": [
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 2
-        },
-        {
-          "direction": "left",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 3
-        },
-        {
-          "direction": "up",
-          "length": 2
-        }
-      ],
-      "head": {
-        "direction": "up"
-      }
-    },
-    {
-      "id": "A58",
-      "start": {
-        "x": 21,
-        "y": 16
-      },
-      "segments": [
-        {
-          "direction": "left",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 3
-        },
-        {
-          "direction": "right",
-          "length": 2
-        }
-      ],
-      "head": {
-        "direction": "right"
-      }
-    },
-    {
-      "id": "A59",
-      "start": {
-        "x": 28,
-        "y": 16
-      },
-      "segments": [
-        {
-          "direction": "up",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "up",
-          "length": 3
-        },
-        {
-          "direction": "left",
-          "length": 1
-        },
-        {
-          "direction": "up",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "up"
-      }
-    },
-    {
-      "id": "A60",
-      "start": {
-        "x": 10,
-        "y": 17
-      },
-      "segments": [
-        {
-          "direction": "left",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 2
-        },
-        {
-          "direction": "left",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 2
-        },
-        {
-          "direction": "down",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "down"
-      }
-    },
-    {
-      "id": "A61",
-      "start": {
-        "x": 4,
-        "y": 18
-      },
-      "segments": [
-        {
-          "direction": "up",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "up",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 3
-        }
-      ],
-      "head": {
-        "direction": "down"
-      }
-    },
-    {
-      "id": "A62",
-      "start": {
-        "x": 11,
-        "y": 18
-      },
-      "segments": [
-        {
-          "direction": "left",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "down"
-      }
-    },
-    {
-      "id": "A63",
-      "start": {
-        "x": 18,
-        "y": 18
-      },
-      "segments": [
-        {
-          "direction": "up",
-          "length": 2
-        },
-        {
-          "direction": "right",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "right"
-      }
-    },
-    {
-      "id": "A64",
-      "start": {
-        "x": 11,
-        "y": 19
-      },
-      "segments": [
-        {
-          "direction": "down",
-          "length": 3
-        },
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 2
-        }
-      ],
-      "head": {
-        "direction": "down"
-      }
-    },
-    {
-      "id": "A65",
-      "start": {
-        "x": 24,
-        "y": 19
-      },
-      "segments": [
-        {
-          "direction": "up",
-          "length": 1
-        },
-        {
-          "direction": "left",
-          "length": 3
-        },
-        {
-          "direction": "up",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "right"
-      }
-    },
-    {
-      "id": "A66",
-      "start": {
-        "x": 5,
-        "y": 20
-      },
-      "segments": [
-        {
-          "direction": "left",
-          "length": 2
-        },
-        {
-          "direction": "up",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 2
-        },
-        {
-          "direction": "up",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 3
-        }
-      ],
-      "head": {
-        "direction": "down"
-      }
-    },
-    {
-      "id": "A67",
-      "start": {
-        "x": 22,
-        "y": 20
-      },
-      "segments": [
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "up",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "up"
-      }
-    },
-    {
-      "id": "A68",
-      "start": {
-        "x": 24,
-        "y": 20
-      },
-      "segments": [
-        {
-          "direction": "down",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "up",
-          "length": 2
-        },
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "down"
-      }
-    },
-    {
-      "id": "A69",
-      "start": {
-        "x": 9,
-        "y": 21
-      },
-      "segments": [
-        {
-          "direction": "left",
-          "length": 2
-        },
-        {
-          "direction": "down",
-          "length": 1
-        },
-        {
-          "direction": "left",
-          "length": 2
-        },
-        {
-          "direction": "up",
-          "length": 1
-        },
-        {
-          "direction": "left",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "left"
-      }
-    },
-    {
-      "id": "A70",
-      "start": {
-        "x": 15,
-        "y": 21
-      },
-      "segments": [
-        {
-          "direction": "left",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 1
-        },
-        {
-          "direction": "left",
-          "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "right"
-      }
-    },
-    {
-      "id": "A71",
-      "start": {
-        "x": 19,
-        "y": 21
-      },
-      "segments": [
-        {
-          "direction": "up",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "up"
-      }
-    },
-    {
-      "id": "A72",
-      "start": {
-        "x": 23,
-        "y": 21
-      },
-      "segments": [
-        {
-          "direction": "down",
-          "length": 1
-        },
-        {
-          "direction": "left",
-          "length": 1
-        },
-        {
-          "direction": "up",
-          "length": 1
-        },
-        {
-          "direction": "left",
-          "length": 2
-        },
-        {
-          "direction": "up",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "right"
-      }
-    },
-    {
-      "id": "A73",
-      "start": {
-        "x": 19,
-        "y": 22
-      },
-      "segments": [
-        {
-          "direction": "left",
-          "length": 1
-        },
-        {
-          "direction": "up",
-          "length": 2
-        },
-        {
-          "direction": "left",
-          "length": 5
-        },
-        {
-          "direction": "up",
-          "length": 1
-        },
-        {
-          "direction": "right",
-          "length": 2
-        },
-        {
-          "direction": "up",
-          "length": 2
-        },
-        {
-          "direction": "right",
-          "length": 1
-        }
-      ],
-      "head": {
-        "direction": "right"
-      }
-    },
-    {
-      "id": "A74",
-      "start": {
-        "x": 13,
         "y": 24
       },
       "segments": [
         {
           "direction": "down",
-          "length": 4
+          "length": 1
+        },
+        {
+          "direction": "left",
+          "length": 1
+        },
+        {
+          "direction": "down",
+          "length": 1
         },
         {
           "direction": "right",
-          "length": 2
+          "length": 1
         }
       ],
       "head": {
@@ -2112,103 +1335,31 @@
       }
     },
     {
-      "id": "A75",
+      "id": "A44",
       "start": {
-        "x": 16,
-        "y": 26
+        "x": 8,
+        "y": 28
       },
       "segments": [
         {
-          "direction": "left",
-          "length": 2
+          "direction": "right",
+          "length": 3
         },
         {
           "direction": "up",
           "length": 1
         },
         {
-          "direction": "right",
+          "direction": "left",
           "length": 2
         },
         {
           "direction": "up",
-          "length": 4
+          "length": 2
         },
         {
-          "direction": "right",
+          "direction": "left",
           "length": 1
-        },
-        {
-          "direction": "down",
-          "length": 2
-        }
-      ],
-      "head": {
-        "direction": "down"
-      }
-    },
-    {
-      "id": "A76",
-      "start": {
-        "x": 14,
-        "y": 27
-      },
-      "segments": [
-        {
-          "direction": "right",
-          "length": 2
-        },
-        {
-          "direction": "down",
-          "length": 2
-        },
-        {
-          "direction": "left",
-          "length": 3
-        },
-        {
-          "direction": "down",
-          "length": 2
-        },
-        {
-          "direction": "right",
-          "length": 6
-        }
-      ],
-      "head": {
-        "direction": "right"
-      }
-    },
-    {
-      "id": "A77",
-      "start": {
-        "x": 12,
-        "y": 30
-      },
-      "segments": [
-        {
-          "direction": "down",
-          "length": 1
-        },
-        {
-          "direction": "left",
-          "length": 2
-        }
-      ],
-      "head": {
-        "direction": "left"
-      }
-    },
-    {
-      "id": "A78",
-      "start": {
-        "x": 17,
-        "y": 30
-      },
-      "segments": [
-        {
-          "direction": "left",
-          "length": 3
         }
       ],
       "head": {
