@@ -17,21 +17,36 @@ export interface ImageSource {
   ink: Float32Array;
 }
 
-export interface ImageMaskOptions {
-  /** Black becomes empty and white becomes grid. */
-  invert: boolean;
-  /** Minimum fraction (0–1) of a cell that must be "grid" pixels for the cell to be on. */
-  coverage: number;
-  /** Crop to the bounding box of grid pixels so blank margins don't waste rows. */
-  trim: boolean;
-}
-
-interface Bounds {
+/** Rectangle as fractions (0–1) of the image's width and height. */
+export interface CropRect {
   x0: number;
   y0: number;
   x1: number;
   y1: number;
 }
+
+export const FULL_CROP: CropRect = { x0: 0, y0: 0, x1: 1, y1: 1 };
+
+export interface ImageMaskOptions {
+  /** Black becomes empty and white becomes grid. */
+  invert: boolean;
+  /** Minimum fraction (0–1) of a cell that must be "grid" pixels for the cell to be on. */
+  coverage: number;
+  /** Part of the image to use; everything outside is ignored. */
+  crop: CropRect;
+  /** Shrink the crop to the bounding box of grid pixels so blank margins don't waste rows. */
+  trim: boolean;
+}
+
+/** Where the used part of the image sits on the grid, in cells. Its height follows its aspect. */
+export interface Placement {
+  x: number;
+  y: number;
+  width: number;
+}
+
+/** Ink-map pixel bounds; fractional when the crop doesn't land on pixel edges. */
+type Bounds = CropRect;
 
 /** Decodes an encoded image (PNG, JPEG, …) and reduces it to a black/white ink map. */
 export function decodeImage(base64: string, name: string, uri: string): ImageSource {
@@ -74,22 +89,33 @@ function gridValue(src: ImageSource, i: number, invert: boolean) {
 }
 
 function imageBounds(src: ImageSource, opts: ImageMaskOptions): Bounds {
-  const full = { x0: 0, y0: 0, x1: src.width, y1: src.height };
-  if (!opts.trim) return full;
-  let x0 = src.width;
-  let y0 = src.height;
-  let x1 = 0;
-  let y1 = 0;
-  for (let y = 0; y < src.height; y++) {
-    for (let x = 0; x < src.width; x++) {
+  const crop = {
+    x0: opts.crop.x0 * src.width,
+    y0: opts.crop.y0 * src.height,
+    x1: opts.crop.x1 * src.width,
+    y1: opts.crop.y1 * src.height,
+  };
+  if (!opts.trim) return crop;
+  let x0 = crop.x1;
+  let y0 = crop.y1;
+  let x1 = crop.x0;
+  let y1 = crop.y0;
+  for (let y = Math.floor(crop.y0); y < Math.ceil(crop.y1); y++) {
+    for (let x = Math.floor(crop.x0); x < Math.ceil(crop.x1); x++) {
       if (gridValue(src, y * src.width + x, opts.invert) < 0.5) continue;
-      x0 = Math.min(x0, x);
-      y0 = Math.min(y0, y);
-      x1 = Math.max(x1, x + 1);
-      y1 = Math.max(y1, y + 1);
+      x0 = Math.min(x0, Math.max(crop.x0, x));
+      y0 = Math.min(y0, Math.max(crop.y0, y));
+      x1 = Math.max(x1, Math.min(crop.x1, x + 1));
+      y1 = Math.max(y1, Math.min(crop.y1, y + 1));
     }
   }
-  return x1 > x0 && y1 > y0 ? { x0, y0, x1, y1 } : full;
+  return x1 > x0 && y1 > y0 ? { x0, y0, x1, y1 } : crop;
+}
+
+/** The part of the image that becomes the grid (crop, then trim), as fractions of the image. */
+export function imageRegion(src: ImageSource, opts: ImageMaskOptions): CropRect {
+  const b = imageBounds(src, opts);
+  return { x0: b.x0 / src.width, y0: b.y0 / src.height, x1: b.x1 / src.width, y1: b.y1 / src.height };
 }
 
 /** Width ÷ height of the part of the image that becomes the grid. */
@@ -98,34 +124,42 @@ export function imageAspect(src: ImageSource, opts: ImageMaskOptions): number {
   return (b.x1 - b.x0) / (b.y1 - b.y0);
 }
 
-/** Rasterize the image onto a width × height grid by area-weighted coverage per cell. */
+/** Largest placement of an image with this aspect that fits the grid, centered. */
+export function fitPlacement(aspect: number, gridW: number, gridH: number): Placement {
+  const width = Math.min(gridW, gridH * aspect);
+  return { x: (gridW - width) / 2, y: (gridH - width / aspect) / 2, width };
+}
+
+/** Rasterize the placed image onto a width × height grid by area-weighted coverage per cell. */
 export function imageMask(
   src: ImageSource,
   width: number,
   height: number,
   opts: ImageMaskOptions,
+  placement: Placement,
 ): boolean[] {
   const b = imageBounds(src, opts);
-  const cellW = (b.x1 - b.x0) / width;
-  const cellH = (b.y1 - b.y0) / height;
+  /** Ink-map pixels per cell side. */
+  const k = (b.x1 - b.x0) / placement.width;
+  const cellArea = k * k;
   const mask: boolean[] = [];
   for (let y = 0; y < height; y++) {
-    const fy0 = b.y0 + y * cellH;
-    const fy1 = fy0 + cellH;
+    const fy0 = Math.max(b.y0, b.y0 + (y - placement.y) * k);
+    const fy1 = Math.min(b.y1, b.y0 + (y + 1 - placement.y) * k);
     for (let x = 0; x < width; x++) {
-      const fx0 = b.x0 + x * cellW;
-      const fx1 = fx0 + cellW;
+      const fx0 = Math.max(b.x0, b.x0 + (x - placement.x) * k);
+      const fx1 = Math.min(b.x1, b.x0 + (x + 1 - placement.x) * k);
       let sum = 0;
-      let area = 0;
-      for (let py = Math.floor(fy0); py < Math.min(src.height, Math.ceil(fy1)); py++) {
-        const wy = Math.min(fy1, py + 1) - Math.max(fy0, py);
-        for (let px = Math.floor(fx0); px < Math.min(src.width, Math.ceil(fx1)); px++) {
-          const w = (Math.min(fx1, px + 1) - Math.max(fx0, px)) * wy;
-          sum += w * gridValue(src, py * src.width + px, opts.invert);
-          area += w;
+      if (fx1 > fx0 && fy1 > fy0) {
+        for (let py = Math.floor(fy0); py < Math.min(src.height, Math.ceil(fy1)); py++) {
+          const wy = Math.min(fy1, py + 1) - Math.max(fy0, py);
+          for (let px = Math.floor(fx0); px < Math.min(src.width, Math.ceil(fx1)); px++) {
+            const w = (Math.min(fx1, px + 1) - Math.max(fx0, px)) * wy;
+            sum += w * gridValue(src, py * src.width + px, opts.invert);
+          }
         }
       }
-      mask.push(area > 0 && sum / area >= opts.coverage - 1e-6);
+      mask.push(sum / cellArea >= opts.coverage - 1e-6);
     }
   }
   return mask;

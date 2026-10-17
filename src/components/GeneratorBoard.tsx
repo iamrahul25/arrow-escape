@@ -1,10 +1,20 @@
 import React, { useMemo, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import { Canvas, Path, Skia } from '@shopify/react-native-skia';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import type { Cell } from '../game/types';
+import type { CropRect, Placement } from '../generator/imageMask';
 import { colors } from '../theme';
 import { arrowHeadSize, arrowStrokeWidth, buildStaticGraphics } from './arrowGraphics';
+
+export interface BoardImageOverlay {
+  uri: string;
+  /** Part of the image that is placed, as fractions of the whole image. */
+  region: CropRect;
+  /** Width ÷ height of `region`. */
+  aspect: number;
+  placement: Placement;
+}
 
 interface GeneratorBoardProps {
   width: number;
@@ -14,11 +24,39 @@ interface GeneratorBoardProps {
   cellSize: number;
   /** When set, tapping/dragging paints cells: the first cell touched decides on or off. */
   onPaint?: (index: number, value: boolean) => void;
+  /** Image drawn faintly over the board where it is placed. */
+  overlay?: BoardImageOverlay | null;
 }
 
 const CELL_GAP = 0.08;
 
-export function GeneratorBoard({ width, height, mask, arrows, cellSize, onPaint }: GeneratorBoardProps) {
+function ImageOverlay({ overlay, cellSize }: { overlay: BoardImageOverlay; cellSize: number }) {
+  const { region, placement } = overlay;
+  const boxW = placement.width * cellSize;
+  const boxH = boxW / overlay.aspect;
+  const imageW = boxW / (region.x1 - region.x0);
+  const imageH = boxH / (region.y1 - region.y0);
+  return (
+    <View
+      pointerEvents="none"
+      style={[
+        styles.overlay,
+        { left: placement.x * cellSize, top: placement.y * cellSize, width: boxW, height: boxH },
+      ]}
+    >
+      <Image
+        source={{ uri: overlay.uri }}
+        resizeMode="stretch"
+        style={[
+          styles.overlayImage,
+          { width: imageW, height: imageH, left: -region.x0 * imageW, top: -region.y0 * imageH },
+        ]}
+      />
+    </View>
+  );
+}
+
+export function GeneratorBoard({ width, height, mask, arrows, cellSize, onPaint, overlay }: GeneratorBoardProps) {
   const pixelWidth = width * cellSize;
   const pixelHeight = height * cellSize;
 
@@ -83,10 +121,10 @@ export function GeneratorBoard({ width, height, mask, arrows, cellSize, onPaint 
 
   const canvas = (
     <Canvas style={{ width: pixelWidth, height: pixelHeight }}>
-      {onPaint ? (
+      {onPaint || overlay ? (
         <Path path={cells.off} color={colors.border} style="stroke" strokeWidth={1} />
       ) : null}
-      <Path path={cells.on} color={colors.cellOn} />
+      <Path path={cells.on} color={overlay ? colors.boardEdge : colors.cellOn} />
       {arrowGfx ? (
         <>
           <Path
@@ -112,6 +150,7 @@ export function GeneratorBoard({ width, height, mask, arrows, cellSize, onPaint 
       ) : (
         canvas
       )}
+      {overlay ? <ImageOverlay overlay={overlay} cellSize={cellSize} /> : null}
     </View>
   );
 }
@@ -120,5 +159,16 @@ const styles = StyleSheet.create({
   board: {
     borderRadius: 12,
     overflow: 'hidden',
+  },
+  overlay: {
+    position: 'absolute',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.blue,
+    borderStyle: 'dashed',
+  },
+  overlayImage: {
+    position: 'absolute',
+    opacity: 0.22,
   },
 });

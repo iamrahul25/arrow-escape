@@ -12,15 +12,23 @@ import {
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
-import { GeneratorBoard } from '../components/GeneratorBoard';
+import { GeneratorBoard, type BoardImageOverlay } from '../components/GeneratorBoard';
 import { Header } from '../components/Header';
+import { ImageCropModal } from '../components/ImageCropModal';
 import { levelFileName, toLevelFile } from '../generator/export';
-import { decodeImage } from '../generator/imageMask';
+import { decodeImage, imageAspect, imageRegion } from '../generator/imageMask';
 import { SHAPES } from '../generator/shapes';
 import { levelFromFile } from '../levels/format';
 import { useGameStore } from '../store/gameStore';
 import Slider from '@react-native-community/slider';
-import { activeMask, GRID_MAX, GRID_MIN, useGeneratorStore } from '../store/generatorStore';
+import {
+  activeMask,
+  GRID_MAX,
+  GRID_MIN,
+  PLACEMENT_MIN,
+  placementLimits,
+  useGeneratorStore,
+} from '../store/generatorStore';
 import { colors, spacing } from '../theme';
 import { pickImage } from '../utils/pickImage';
 import { saveJsonFile } from '../utils/saveJson';
@@ -133,6 +141,39 @@ function SizeSlider({
   );
 }
 
+/** Slider that applies every change immediately. */
+function LiveSlider({
+  label,
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <View style={styles.sliderRow}>
+      <Text style={styles.sliderLabel}>{label}</Text>
+      <Slider
+        style={styles.slider}
+        minimumValue={min}
+        maximumValue={max}
+        step={1}
+        value={value}
+        minimumTrackTintColor={colors.blue}
+        maximumTrackTintColor={colors.border}
+        thumbTintColor={colors.blue}
+        onValueChange={onChange}
+      />
+      <Text style={styles.sliderValue}>{Math.round(value)}</Text>
+    </View>
+  );
+}
+
 function Stat({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
     <View style={styles.statRow}>
@@ -156,6 +197,8 @@ export function GeneratorScreen() {
   const [notice, setNotice] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
+  const [cropOpen, setCropOpen] = useState(false);
+  const [boardMode, setBoardMode] = useState<'place' | 'paint'>('place');
 
   useEffect(() => setSeedText(String(g.seed)), [g.seed]);
   useEffect(() => {
@@ -173,6 +216,21 @@ export function GeneratorScreen() {
     [g.customShape, g.customMask, g.width, g.height],
   );
   const result = g.result;
+
+  const imageActive = g.customShape && g.shape === 'image' && g.image !== null;
+  const imageGeom = useMemo(
+    () =>
+      g.image
+        ? { aspect: imageAspect(g.image, g.imageSettings), region: imageRegion(g.image, g.imageSettings) }
+        : null,
+    [g.image, g.imageSettings],
+  );
+  const placing = imageActive && boardMode === 'place';
+  const overlay: BoardImageOverlay | null =
+    placing && g.image && imageGeom
+      ? { uri: g.image.uri, region: imageGeom.region, aspect: imageGeom.aspect, placement: g.placement }
+      : null;
+  const limits = imageGeom ? placementLimits(imageGeom.aspect, g.width, g.height, g.placement.width) : null;
 
   const levelFile = useMemo(() => {
     if (!result) return null;
@@ -211,7 +269,11 @@ export function GeneratorScreen() {
     setPicking(true);
     try {
       const picked = await pickImage();
-      if (picked) g.setImage(decodeImage(picked.base64, picked.name, picked.uri));
+      if (picked) {
+        g.setImage(decodeImage(picked.base64, picked.name, picked.uri));
+        setBoardMode('place');
+        setCropOpen(true);
+      }
     } catch (err) {
       setImageError((err as Error).message);
     } finally {
@@ -254,7 +316,8 @@ export function GeneratorScreen() {
         mask={mask}
         arrows={result?.level.arrows ?? null}
         cellSize={cellSize}
-        onPaint={g.customShape ? g.paintCell : undefined}
+        onPaint={g.customShape && !placing ? g.paintCell : undefined}
+        overlay={overlay}
       />
     </View>
   );
@@ -304,8 +367,15 @@ export function GeneratorScreen() {
           onChange={(v) => setHeightText(String(v))}
           onCommit={(v) => onSlide(g.width, v)}
         />
-        {g.customShape && g.shape === 'image' && g.imageSettings.keepAspect ? (
-          <Text style={styles.help}>Width and height follow the image's proportions.</Text>
+        {imageActive ? (
+          <>
+            <Toggle label="Lock ratio" value={g.lockRatio} onChange={g.setLockRatio} />
+            <Text style={styles.help}>
+              {g.lockRatio
+                ? 'Width and height change together and the image scales with the grid.'
+                : 'Resizing only adds or removes rows and columns; the image keeps its size.'}
+            </Text>
+          </>
         ) : null}
       </View>
 
@@ -373,22 +443,69 @@ export function GeneratorScreen() {
                 onPress={onPickImage}
                 disabled={picking}
               />
+              {g.image ? <Button label="Edit Crop" onPress={() => setCropOpen(true)} /> : null}
               {g.image && g.shape !== 'image' ? (
                 <Button label="Use Image" variant="primary" onPress={g.applyImage} />
               ) : null}
             </View>
             {imageError ? <Text style={styles.error}>{imageError}</Text> : null}
+            {imageActive && limits ? (
+              <>
+                <View style={styles.chips}>
+                  {(['place', 'paint'] as const).map((mode) => (
+                    <Pressable
+                      key={mode}
+                      style={[styles.chip, boardMode === mode && styles.chipActive]}
+                      onPress={() => setBoardMode(mode)}
+                    >
+                      <Text style={[styles.chipText, boardMode === mode && styles.chipTextActive]}>
+                        {mode === 'place' ? 'Place image' : 'Paint cells'}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <Text style={styles.help}>
+                  {placing
+                    ? 'Move and size the image on the grid. Hand-painted cells are replaced when the image changes.'
+                    : 'Tap or drag on the board to touch up cells.'}
+                </Text>
+                {placing ? (
+                  <>
+                    <LiveSlider
+                      label="Size"
+                      value={g.placement.width}
+                      min={PLACEMENT_MIN}
+                      max={limits.maxWidth}
+                      onChange={(width) => g.placeImage({ width })}
+                    />
+                    <LiveSlider
+                      label="X"
+                      value={g.placement.x}
+                      min={limits.minX}
+                      max={limits.maxX}
+                      onChange={(x) => g.placeImage({ x })}
+                    />
+                    <LiveSlider
+                      label="Y"
+                      value={g.placement.y}
+                      min={limits.minY}
+                      max={limits.maxY}
+                      onChange={(y) => g.placeImage({ y })}
+                    />
+                    <View style={styles.buttonRow}>
+                      <Button label="Fit" onPress={g.fitImage} />
+                      <Button label="Center" onPress={g.centerImage} />
+                    </View>
+                  </>
+                ) : null}
+              </>
+            ) : null}
             {g.image ? (
               <>
                 <Toggle
                   label="Invert"
                   value={g.imageSettings.invert}
                   onChange={(invert) => g.updateImage({ invert })}
-                />
-                <Toggle
-                  label="Keep proportions"
-                  value={g.imageSettings.keepAspect}
-                  onChange={(keepAspect) => g.updateImage({ keepAspect })}
                 />
                 <Toggle
                   label="Trim blank border"
@@ -506,10 +623,32 @@ export function GeneratorScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <Header title="Level Generator" onBack={() => setScreen('home')} />
-      <ScrollView contentContainerStyle={[styles.content, wide && styles.contentWide]}>
-        {board}
-        {panel}
-      </ScrollView>
+      {wide ? (
+        <View style={[styles.content, styles.contentWide]}>
+          {board}
+          <ScrollView style={styles.panelScroll} contentContainerStyle={styles.panelScrollContent}>
+            {panel}
+          </ScrollView>
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={styles.content}>
+          {board}
+          {panel}
+        </ScrollView>
+      )}
+      {g.image ? (
+        <ImageCropModal
+          visible={cropOpen}
+          uri={g.image.uri}
+          aspect={g.image.width / g.image.height}
+          crop={g.imageSettings.crop}
+          onCancel={() => setCropOpen(false)}
+          onApply={(crop) => {
+            g.updateImage({ crop });
+            setCropOpen(false);
+          }}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -524,9 +663,19 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   contentWide: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'center',
+    paddingBottom: 0,
+  },
+  panelScroll: {
+    alignSelf: 'stretch',
+    width: SIDE_PANEL,
+    flexGrow: 0,
+  },
+  panelScrollContent: {
+    paddingBottom: spacing.md,
   },
   boardWrap: {
     alignItems: 'center',
