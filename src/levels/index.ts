@@ -15,7 +15,7 @@ function suite(id: number, name: string, description: string, files: LevelFile[]
 }
 
 export const SUITES: Suite[] = [
-  suite(1, 'Squares & Rectangles', 'Grids from 4×4 up to 20×20', SUITE_1_LEVELS),
+  suite(1, 'Squares & Rectangles', 'Grids from 4×4 up to 40×40', SUITE_1_LEVELS),
   suite(2, 'Custom Shapes', 'Hearts, stars, rings and more', SUITE_2_LEVELS),
 ];
 

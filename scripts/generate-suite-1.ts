@@ -1,5 +1,5 @@
 /**
- * Builds Suite 1 (squares & rectangles): 100 levels growing from 4×4 to 20×20.
+ * Builds Suite 1 (squares & rectangles): 200 levels growing from 4×4 to 40×40, in tiers.
  * Run with `npm run levels:suite-1`. Output is deterministic for a given generator version.
  */
 import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -9,9 +9,11 @@ import { generateLevel, type GeneratedLevel } from '../src/generator/generator';
 import { fullMask } from '../src/generator/shapes';
 
 const SUITE_ID = 1;
-const LEVEL_COUNT = 100;
-const MIN_SIDE = 4;
-const MAX_SIDE = 20;
+/** Each tier spreads its levels from a minSide square up to a maxSide square. */
+const TIERS: Tier[] = [
+  { levelCount: 100, minSide: 4, maxSide: 20 },
+  { levelCount: 100, minSide: 21, maxSide: 40 },
+];
 /** Portrait rectangles: height = width + extra. */
 const HEIGHT_EXTRAS = [0, 1, 2];
 const SEEDS_PER_LEVEL = 16;
@@ -22,28 +24,36 @@ const MIN_LENGTH_FACTOR = 0.5;
 
 const OUT_DIR = join(__dirname, '..', 'src', 'levels', 'suites', `suite-${SUITE_ID}`);
 
+interface Tier {
+  levelCount: number;
+  minSide: number;
+  maxSide: number;
+}
+
 interface Size {
   width: number;
   height: number;
 }
 
-function boardSizes(): Size[] {
+function boardSizes(tier: Tier): Size[] {
   const sizes: Size[] = [];
-  for (let width = MIN_SIDE; width <= MAX_SIDE; width++) {
+  for (let width = tier.minSide; width <= tier.maxSide; width++) {
     for (const extra of HEIGHT_EXTRAS) {
       const height = width + extra;
-      if (height <= MAX_SIDE) sizes.push({ width, height });
+      if (height <= tier.maxSide) sizes.push({ width, height });
     }
   }
   return sizes.sort((a, b) => a.width * a.height - b.width * b.height || a.width - b.width);
 }
 
-/** Spread the levels evenly over the size list so the first is 4×4 and the last is 20×20. */
+/** Spread each tier's levels evenly over its size list, from its smallest square to its largest. */
 function levelSizes(): Size[] {
-  const sizes = boardSizes();
-  return Array.from({ length: LEVEL_COUNT }, (_, i) =>
-    sizes[Math.round((i * (sizes.length - 1)) / (LEVEL_COUNT - 1))],
-  );
+  return TIERS.flatMap((tier) => {
+    const sizes = boardSizes(tier);
+    return Array.from({ length: tier.levelCount }, (_, i) =>
+      sizes[Math.round((i * (sizes.length - 1)) / (tier.levelCount - 1))],
+    );
+  });
 }
 
 /** Prefer full coverage, then deeper clearing order, then fewer arrows free at the start. */

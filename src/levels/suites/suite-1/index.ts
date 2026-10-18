@@ -100,6 +100,106 @@ import l97 from './level-097.json';
 import l98 from './level-098.json';
 import l99 from './level-099.json';
 import l100 from './level-100.json';
+import l101 from './level-101.json';
+import l102 from './level-102.json';
+import l103 from './level-103.json';
+import l104 from './level-104.json';
+import l105 from './level-105.json';
+import l106 from './level-106.json';
+import l107 from './level-107.json';
+import l108 from './level-108.json';
+import l109 from './level-109.json';
+import l110 from './level-110.json';
+import l111 from './level-111.json';
+import l112 from './level-112.json';
+import l113 from './level-113.json';
+import l114 from './level-114.json';
+import l115 from './level-115.json';
+import l116 from './level-116.json';
+import l117 from './level-117.json';
+import l118 from './level-118.json';
+import l119 from './level-119.json';
+import l120 from './level-120.json';
+import l121 from './level-121.json';
+import l122 from './level-122.json';
+import l123 from './level-123.json';
+import l124 from './level-124.json';
+import l125 from './level-125.json';
+import l126 from './level-126.json';
+import l127 from './level-127.json';
+import l128 from './level-128.json';
+import l129 from './level-129.json';
+import l130 from './level-130.json';
+import l131 from './level-131.json';
+import l132 from './level-132.json';
+import l133 from './level-133.json';
+import l134 from './level-134.json';
+import l135 from './level-135.json';
+import l136 from './level-136.json';
+import l137 from './level-137.json';
+import l138 from './level-138.json';
+import l139 from './level-139.json';
+import l140 from './level-140.json';
+import l141 from './level-141.json';
+import l142 from './level-142.json';
+import l143 from './level-143.json';
+import l144 from './level-144.json';
+import l145 from './level-145.json';
+import l146 from './level-146.json';
+import l147 from './level-147.json';
+import l148 from './level-148.json';
+import l149 from './level-149.json';
+import l150 from './level-150.json';
+import l151 from './level-151.json';
+import l152 from './level-152.json';
+import l153 from './level-153.json';
+import l154 from './level-154.json';
+import l155 from './level-155.json';
+import l156 from './level-156.json';
+import l157 from './level-157.json';
+import l158 from './level-158.json';
+import l159 from './level-159.json';
+import l160 from './level-160.json';
+import l161 from './level-161.json';
+import l162 from './level-162.json';
+import l163 from './level-163.json';
+import l164 from './level-164.json';
+import l165 from './level-165.json';
+import l166 from './level-166.json';
+import l167 from './level-167.json';
+import l168 from './level-168.json';
+import l169 from './level-169.json';
+import l170 from './level-170.json';
+import l171 from './level-171.json';
+import l172 from './level-172.json';
+import l173 from './level-173.json';
+import l174 from './level-174.json';
+import l175 from './level-175.json';
+import l176 from './level-176.json';
+import l177 from './level-177.json';
+import l178 from './level-178.json';
+import l179 from './level-179.json';
+import l180 from './level-180.json';
+import l181 from './level-181.json';
+import l182 from './level-182.json';
+import l183 from './level-183.json';
+import l184 from './level-184.json';
+import l185 from './level-185.json';
+import l186 from './level-186.json';
+import l187 from './level-187.json';
+import l188 from './level-188.json';
+import l189 from './level-189.json';
+import l190 from './level-190.json';
+import l191 from './level-191.json';
+import l192 from './level-192.json';
+import l193 from './level-193.json';
+import l194 from './level-194.json';
+import l195 from './level-195.json';
+import l196 from './level-196.json';
+import l197 from './level-197.json';
+import l198 from './level-198.json';
+import l199 from './level-199.json';
+import l200 from './level-200.json';
 
 export const SUITE_1_LEVELS = [
   l1,
@@ -202,4 +302,104 @@ export const SUITE_1_LEVELS = [
   l98,
   l99,
   l100,
+  l101,
+  l102,
+  l103,
+  l104,
+  l105,
+  l106,
+  l107,
+  l108,
+  l109,
+  l110,
+  l111,
+  l112,
+  l113,
+  l114,
+  l115,
+  l116,
+  l117,
+  l118,
+  l119,
+  l120,
+  l121,
+  l122,
+  l123,
+  l124,
+  l125,
+  l126,
+  l127,
+  l128,
+  l129,
+  l130,
+  l131,
+  l132,
+  l133,
+  l134,
+  l135,
+  l136,
+  l137,
+  l138,
+  l139,
+  l140,
+  l141,
+  l142,
+  l143,
+  l144,
+  l145,
+  l146,
+  l147,
+  l148,
+  l149,
+  l150,
+  l151,
+  l152,
+  l153,
+  l154,
+  l155,
+  l156,
+  l157,
+  l158,
+  l159,
+  l160,
+  l161,
+  l162,
+  l163,
+  l164,
+  l165,
+  l166,
+  l167,
+  l168,
+  l169,
+  l170,
+  l171,
+  l172,
+  l173,
+  l174,
+  l175,
+  l176,
+  l177,
+  l178,
+  l179,
+  l180,
+  l181,
+  l182,
+  l183,
+  l184,
+  l185,
+  l186,
+  l187,
+  l188,
+  l189,
+  l190,
+  l191,
+  l192,
+  l193,
+  l194,
+  l195,
+  l196,
+  l197,
+  l198,
+  l199,
+  l200,
 ] as LevelFile[];
